@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Zameen Maalik — Property Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Noto+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --saffron:#FF6B00;--saffron-light:#FF8C38;--saffron-pale:#FFF0E5;
+  --green:#138808;--green-light:#1AAA09;--green-pale:#E8F5E6;
+  --navy:#0A1628;--navy-mid:#1C2E4A;--navy-soft:#2C3E5A;
+  --gold:#D4AF37;--cream:#FDF6EC;--white:#FFFFFF;
+  --grey-1:#F4F6F9;--grey-2:#E2E8F0;--grey-3:#94A3B8;--grey-4:#64748B;
+  --red:#DC2626;--red-pale:#FEF2F2;--blue:#1D4ED8;--blue-pale:#EFF6FF;
+  --purple:#7C3AED;--purple-pale:#F5F3FF;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08);--shadow-md:0 4px 12px rgba(0,0,0,.12);
+  --radius:14px;--radius-sm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans',sans-serif;background:var(--cream);color:var(--navy);min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Baloo 2',cursive}
+
+/* ─── LOGIN ─── */
+#login-screen{position:fixed;inset:0;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;padding:24px}
+.login-logo{width:76px;height:76px;background:linear-gradient(135deg,var(--saffron),var(--gold));border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:18px;box-shadow:0 8px 32px rgba(255,107,0,.4)}
+.login-title{font-family:'Baloo 2',cursive;font-size:30px;font-weight:800;color:white;margin-bottom:5px}
+.login-sub{color:rgba(255,255,255,.5);font-size:13px;margin-bottom:32px;text-align:center;line-height:1.7;max-width:320px}
+.login-card{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:20px;padding:24px;width:100%;max-width:360px}
+.login-card-title{color:rgba(255,255,255,.5);font-size:11px;text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:14px}
+.glogin-btn{width:100%;padding:14px 18px;background:white;border:none;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:12px;font-family:'Noto Sans',sans-serif;font-size:14px;font-weight:600;color:var(--navy);cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.3);transition:transform .12s}
+.glogin-btn:active{transform:scale(.97)}
+.login-divider{text-align:center;color:rgba(255,255,255,.25);font-size:12px;margin:14px 0}
+.local-btn{width:100%;padding:11px;background:transparent;border:1.5px solid rgba(255,255,255,.15);border-radius:10px;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;font-family:'Noto Sans',sans-serif}
+.login-note{color:rgba(255,255,255,.25);font-size:11px;text-align:center;margin-top:14px;line-height:1.7}
+.login-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:16px}
+.login-badge{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:20px;color:rgba(255,255,255,.45);font-size:10px;padding:4px 10px}
+
+/* ─── TOPBAR ─── */
+.topbar{background:var(--navy);color:white;padding:0 14px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.topbar-logo{display:flex;align-items:center;gap:9px}
+.logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--saffron),var(--gold));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.logo-text{font-family:'Baloo 2',cursive;font-size:18px;font-weight:800}
+.logo-text span{color:var(--saffron-light)}
+.tb-right{display:flex;align-items:center;gap:6px}
+.tb-btn{background:rgba(255,255,255,.1);border:none;color:white;padding:5px 9px;border-radius:7px;font-size:11px;font-family:'Noto Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.tb-btn.synced{background:rgba(19,136,8,.4)}
+.tb-btn.syncing{background:rgba(212,175,55,.3)}
+.tb-btn.error{background:rgba(220,38,38,.4)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green-light);flex-shrink:0}
+.user-av{width:28px;height:28px;border-radius:50%;background:var(--saffron);color:white;font-family:'Baloo 2',cursive;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid rgba(255,255,255,.2);overflow:hidden;flex-shrink:0}
+.user-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+
+/* ─── SYNC BAR ─── */
+.sync-bar{background:var(--green);color:white;text-align:center;padding:6px;font-size:11px;font-weight:600;display:none;align-items:center;justify-content:center;gap:6px}
+.sync-bar.show{display:flex}
+.sync-bar.err{background:var(--red)}
+
+/* ─── MAIN / PAGES ─── */
+.main{padding:12px 14px 82px;max-width:480px;margin:0 auto}
+.page{display:none}.page.active{display:block}
+
+/* ─── BOTTOM NAV ─── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--navy);display:flex;z-index:100;box-shadow:0 -2px 10px rgba(0,0,0,.2);padding-bottom:env(safe-area-inset-bottom)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 4px 10px;cursor:pointer;border:none;background:transparent;color:var(--grey-3);font-family:'Noto Sans',sans-serif;font-size:10px;font-weight:500;gap:3px;position:relative}
+.nav-item.active{color:var(--saffron-light)}
+.nav-icon{font-size:19px}
+.nav-badge{position:absolute;top:5px;right:calc(50% - 18px);background:var(--red);color:white;font-size:9px;min-width:15px;height:15px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 3px}
+
+/* ─── CARDS / STATS ─── */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat-card{background:white;border-radius:var(--radius);padding:14px;box-shadow:var(--shadow-sm);border-left:4px solid var(--grey-2)}
+.stat-card.orange{border-left-color:var(--saffron)}.stat-card.green{border-left-color:var(--green)}
+.stat-card.red{border-left-color:var(--red)}.stat-card.blue{border-left-color:var(--blue)}
+.stat-label{font-size:10px;color:var(--grey-4);text-transform:uppercase;letter-spacing:.5px}
+.stat-value{font-family:'Baloo 2',cursive;font-size:22px;font-weight:800;margin-top:3px;line-height:1.1}
+.stat-card.orange .stat-value{color:var(--saffron)}.stat-card.green .stat-value{color:var(--green)}
+.stat-card.red .stat-value{color:var(--red)}.stat-card.blue .stat-value{color:var(--blue)}
+.stat-sub{font-size:11px;color:var(--grey-3);margin-top:2px}
+
+/* ─── SECTION HEADER ─── */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin:18px 0 10px}
+.sec-title{font-family:'Baloo 2',cursive;font-size:16px;font-weight:700}
+.sec-btn{font-size:12px;color:var(--saffron);font-weight:600;cursor:pointer;border:none;background:none;font-family:'Noto Sans',sans-serif}
+
+/* ─── NOTICES ─── */
+.notice{border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.6}
+.notice.warn{background:var(--saffron-pale);border:1.5px solid #FFD4A8;color:#7A3200}
+.notice.info{background:var(--blue-pale);border:1.5px solid #BFDBFE;color:#1E3A6E}
+.notice.ok{background:var(--green-pale);border:1.5px solid #BBF7D0;color:#064E23}
+
+/* ─── PROPERTY CARD ─── */
+.prop-card{background:white;border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:12px;overflow:hidden}
+.prop-head{background:linear-gradient(135deg,var(--navy),var(--navy-mid));color:white;padding:13px 14px;display:flex;align-items:center;gap:10px}
+.prop-emoji{font-size:24px;flex-shrink:0}
+.prop-name{font-family:'Baloo 2',cursive;font-size:15px;font-weight:700}
+.prop-addr{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prop-badge{background:var(--saffron);color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0}
+.prop-stats{display:flex;border-top:1px solid var(--grey-1)}
+.pstat{flex:1;text-align:center;padding:9px 4px;border-right:1px solid var(--grey-1)}
+.pstat:last-child{border-right:none}
+.pstat-val{font-family:'Baloo 2',cursive;font-size:14px;font-weight:700;color:var(--saffron)}
+.pstat-lbl{font-size:10px;color:var(--grey-4);margin-top:1px}
+.prop-actions{padding:9px 12px;display:flex;gap:6px;flex-wrap:wrap}
+
+/* ─── TENANT CARD ─── */
+.ten-card{background:white;border-radius:var(--radius);padding:12px 13px;box-shadow:var(--shadow-sm);margin-bottom:9px;display:flex;align-items:flex-start;gap:10px}
+.ten-avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--saffron-pale),#FFD4A8);display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',cursive;font-size:17px;font-weight:800;color:var(--saffron);flex-shrink:0}
+.ten-name{font-size:14px;font-weight:600}
+.ten-meta{font-size:11px;color:var(--grey-4);margin-top:3px;line-height:1.7}
+.ten-acts{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.status-pill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;flex-shrink:0;align-self:flex-start}
+.status-pill.active{background:var(--green-pale);color:var(--green)}
+.status-pill.vacated{background:var(--grey-1);color:var(--grey-4)}
+
+/* ─── FINANCE ─── */
+.fin-summary{background:linear-gradient(135deg,var(--navy),var(--navy-mid));border-radius:var(--radius);padding:16px;color:white;margin-bottom:14px}
+.fin-net-lbl{font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px}
+.fin-net-amt{font-family:'Baloo 2',cursive;font-size:26px;font-weight:800;color:var(--gold);margin:4px 0}
+.fin-row{display:flex;gap:22px;margin-top:8px}
+.fin-sub-val{font-family:'Baloo 2',cursive;font-size:15px;font-weight:700}
+.fin-sub-val.pos{color:#2ECC71}.fin-sub-val.neg{color:#E74C3C}
+.fin-sub-lbl{font-size:10px;color:rgba(255,255,255,.45);margin-top:2px}
+.month-row{display:flex;gap:5px;overflow-x:auto;padding-bottom:4px;margin-bottom:11px;scrollbar-width:none}
+.month-row::-webkit-scrollbar{display:none}
+.mon-tab{padding:5px 11px;border-radius:20px;border:1.5px solid var(--grey-2);background:white;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;color:var(--grey-4);flex-shrink:0}
+.mon-tab.active{background:var(--saffron);border-color:var(--saffron);color:white}
+.fin-rec{background:white;border-radius:var(--radius-sm);padding:10px 12px;box-shadow:var(--shadow-sm);margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.fin-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.fin-dot.in{background:var(--green)}.fin-dot.out{background:var(--red)}
+.fin-rec-title{font-size:13px;font-weight:600}
+.fin-rec-sub{font-size:11px;color:var(--grey-4);margin-top:2px}
+.fin-amt{font-family:'Baloo 2',cursive;font-size:14px;font-weight:700}
+.fin-amt.in{color:var(--green)}.fin-amt.out{color:var(--red)}
+
+/* ─── DISPUTE ─── */
+.dis-card{background:white;border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:10px;overflow:hidden}
+.dis-head{padding:10px 13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dis-type{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;text-transform:uppercase;background:#FEF3C7;color:#92400E}
+.dis-type.legal{background:var(--blue-pale);color:var(--blue)}
+.dis-title{font-size:13px;font-weight:700;flex:1;min-width:0}
+.dis-status{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;flex-shrink:0}
+.dis-status.open{background:#FEF3C7;color:#92400E}
+.dis-status.hearing{background:var(--blue-pale);color:var(--blue)}
+.dis-status.closed{background:var(--green-pale);color:var(--green)}
+.dis-body{padding:0 13px 11px;font-size:12px;color:var(--grey-4);line-height:1.7}
+.dis-foot{padding:8px 13px;border-top:1px solid var(--grey-1);display:flex;justify-content:space-between;align-items:center}
+
+/* ─── BUTTONS ─── */
+.btn{padding:7px 12px;border-radius:var(--radius-sm);border:none;font-family:'Noto Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.btn:active{opacity:.75}
+.btn-primary{background:linear-gradient(135deg,var(--saffron),var(--saffron-light));color:white;box-shadow:0 3px 8px rgba(255,107,0,.25)}
+.btn-secondary{background:var(--grey-1);color:var(--navy);border:1.5px solid var(--grey-2)}
+.btn-blue{background:var(--blue-pale);color:var(--blue);border:1.5px solid #BFDBFE}
+.btn-green{background:var(--green-pale);color:var(--green);border:1.5px solid #BBF7D0}
+.btn-red{background:var(--red-pale);color:var(--red);border:1.5px solid #FECACA}
+.btn-full{width:100%;padding:13px;font-size:14px;font-family:'Baloo 2',cursive;font-weight:700}
+.btn-sm{padding:4px 9px;font-size:10px;border-radius:5px}
+
+/* ─── CHIPS / TABS ─── */
+.chip-row{display:flex;gap:5px;overflow-x:auto;margin-bottom:11px;padding-bottom:4px;scrollbar-width:none}
+.chip-row::-webkit-scrollbar{display:none}
+.chip{padding:5px 11px;border-radius:20px;border:1.5px solid var(--grey-2);background:white;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;color:var(--grey-4);flex-shrink:0}
+.chip.active{background:var(--navy);border-color:var(--navy);color:white}
+.toggle-row{display:flex;background:var(--grey-1);border-radius:var(--radius-sm);padding:3px;margin-bottom:11px}
+.tog-tab{flex:1;text-align:center;padding:7px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:var(--grey-4);border:none;background:transparent;font-family:'Noto Sans',sans-serif}
+.tog-tab.active{background:white;color:var(--navy);box-shadow:var(--shadow-sm)}
+
+/* ─── SEARCH ─── */
+.search-box{display:flex;align-items:center;background:white;border:1.5px solid var(--grey-2);border-radius:var(--radius-sm);padding:9px 12px;gap:8px;margin-bottom:11px}
+.search-box input{border:none;outline:none;font-family:'Noto Sans',sans-serif;font-size:13px;color:var(--navy);flex:1;background:transparent}
+
+/* ─── OVERLAY / BOTTOM SHEET ─── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:none;align-items:flex-end;backdrop-filter:blur(2px)}
+.overlay.open{display:flex}
+.bsheet{background:white;border-radius:22px 22px 0 0;width:100%;max-height:92vh;overflow-y:auto;animation:sheetUp .25s ease;padding-bottom:env(safe-area-inset-bottom,20px)}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:38px;height:4px;background:var(--grey-2);border-radius:2px;margin:10px auto 0}
+.sheet-head{padding:13px 16px;border-bottom:1px solid var(--grey-1);display:flex;align-items:center;gap:10px}
+.sheet-title{font-family:'Baloo 2',cursive;font-size:16px;font-weight:700;flex:1}
+.sheet-close{width:30px;height:30px;border-radius:50%;background:var(--grey-1);border:none;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.sheet-body{padding:16px}
+
+/* ─── FORMS ─── */
+.fg{margin-bottom:13px}
+.fl{display:block;font-size:11px;font-weight:600;color:var(--navy-soft);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.fi,.fsel,.fta{width:100%;padding:11px 13px;border:1.5px solid var(--grey-2);border-radius:var(--radius-sm);font-family:'Noto Sans',sans-serif;font-size:14px;color:var(--navy);background:white;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+.fsel{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748B' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;cursor:pointer}
+.fi:focus,.fsel:focus,.fta:focus{border-color:var(--saffron);box-shadow:0 0 0 3px rgba(255,107,0,.1)}
+.fta{resize:vertical;min-height:68px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.req{color:var(--saffron)}
+
+/* ─── DOC ATTACH ─── */
+.att-item{display:flex;align-items:center;gap:8px;background:var(--grey-1);border-radius:6px;padding:8px 10px;margin-top:7px;border:1px solid var(--grey-2)}
+.att-name{flex:1;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.att-del{background:var(--red-pale);color:var(--red);border:none;font-size:10px;padding:3px 7px;border-radius:4px;cursor:pointer;font-weight:600}
+
+/* ─── INFO TABLE ─── */
+.info-tbl{background:white;border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:12px}
+.info-row{display:flex;justify-content:space-between;padding:9px 12px;border-bottom:1px solid var(--grey-1);font-size:12px;align-items:flex-start;gap:8px}
+.info-row:last-child{border-bottom:none}
+.info-key{color:var(--grey-4);flex-shrink:0}
+.info-val{font-weight:600;text-align:right;word-break:break-word;max-width:220px}
+
+/* ─── FAB ─── */
+.fab{position:fixed;bottom:74px;right:16px;width:52px;height:52px;background:linear-gradient(135deg,var(--saffron),var(--saffron-light));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;color:white;box-shadow:0 4px 16px rgba(255,107,0,.4);cursor:pointer;border:none;z-index:99}
+
+/* ─── TOAST ─── */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--navy);color:white;padding:10px 17px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;z-index:500;display:none;max-width:90vw;text-align:center;box-shadow:var(--shadow-md)}
+.toast.show{display:block;animation:toastIn 3.5s ease forwards}
+@keyframes toastIn{0%{opacity:0;transform:translateX(-50%) translateY(8px)}10%{opacity:1;transform:translateX(-50%)}80%{opacity:1}100%{opacity:0;transform:translateX(-50%)}}
+
+/* ─── EMPTY ─── */
+.empty{text-align:center;padding:38px 20px}
+.empty-ico{font-size:46px;margin-bottom:10px}
+.empty-title{font-family:'Baloo 2',cursive;font-size:17px;font-weight:700}
+.empty-sub{font-size:12px;color:var(--grey-4);margin-top:5px;line-height:1.6}
+
+/* ─── ACTIVITY ─── */
+.act-item{background:white;border-radius:var(--radius-sm);padding:10px 12px;box-shadow:var(--shadow-sm);margin-bottom:8px;display:flex;align-items:center;gap:9px}
+.act-ico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.act-ico.rent{background:var(--green-pale)}.act-ico.expense{background:var(--red-pale)}.act-ico.dispute{background:var(--purple-pale)}
+.act-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act-sub{font-size:11px;color:var(--grey-4);margin-top:2px}
+.act-amt{font-family:'Baloo 2',cursive;font-size:14px;font-weight:700;flex-shrink:0}
+
+/* ─── DRIVE CARD ─── */
+.drive-card{background:white;border-radius:var(--radius);padding:14px;box-shadow:var(--shadow-sm);margin-bottom:14px;border:1.5px solid var(--grey-2)}
+.drive-card-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.drive-card-ico{width:36px;height:36px;border-radius:9px;background:var(--blue-pale);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.drive-card-title{font-size:13px;font-weight:700}
+.drive-card-sub{font-size:11px;color:var(--grey-4);margin-top:2px}
+.drive-card-acts{display:flex;gap:7px;flex-wrap:wrap}
+
+/* ─── REPORTS PAGE ─── */
+.rpt-section{font-size:12px;font-weight:700;color:var(--grey-4);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px}
+.rpt-menu{background:white;border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:4px}
+.rpt-item{display:flex;align-items:center;gap:12px;padding:13px 15px;border-bottom:1px solid var(--grey-1);cursor:pointer}
+.rpt-item:last-child{border-bottom:none}
+.rpt-item:active{background:var(--grey-1)}
+.rpt-ico{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.rpt-label{font-size:13px;font-weight:600}
+.rpt-sub{font-size:11px;color:var(--grey-4);margin-top:1px}
+.rpt-arrow{color:var(--grey-3);font-size:14px;margin-left:auto}
+
+@media(max-width:360px){.frow{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ LOGIN SCREEN ════════════════ -->
+<div id="login-screen">
+  <div class="login-logo">🏘️</div>
+  <div class="login-title">Zameen Maalik</div>
+  <div class="login-sub">Complete property management. Data saves to YOUR Google Drive — private, free, accessible anywhere.</div>
+  <div class="login-card">
+    <div class="login-card-title">Sign in to continue</div>
+    <button class="glogin-btn" onclick="signInWithGoogle()">
+      <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Sign in with Google
+    </button>
+    <div class="login-divider">— or —</div>
+    <button class="local-btn" onclick="useLocalMode()">Continue without Google (local only)</button>
+    <div class="login-note">Local mode: data saved only in this browser, not synced across devices</div>
+  </div>
+  <div class="login-badges">
+    <div class="login-badge">✅ Syncs to Google Drive</div>
+    <div class="login-badge">✅ Any device, any browser</div>
+    <div class="login-badge">✅ 15 GB free storage</div>
+    <div class="login-badge">✅ No servers, no subscription</div>
+  </div>
+</div>
+
+<!-- ════════════════ APP ════════════════ -->
+<div class="sync-bar" id="syncBar">⏳ <span id="syncMsg">Syncing...</span></div>
+
+<div class="topbar" id="topbar" style="display:none">
+  <div class="topbar-logo">
+    <div class="logo-icon">🏘️</div>
+    <div class="logo-text">Zameen <span>Maalik</span></div>
+  </div>
+  <div class="tb-right">
+    <button class="tb-btn synced" id="syncBtn" onclick="manualSync()">
+      <div class="sync-dot"></div>&nbsp;<span id="syncLbl">Synced</span>
+    </button>
+    <div class="user-av" id="userAv" onclick="openSh('profileOv')">?</div>
+  </div>
+</div>
+
+<div class="main" id="mainApp" style="display:none">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div style="margin-bottom:14px">
+      <h2 style="font-size:21px;font-weight:800">🙏 Namaste, <span id="uFirstName">Maalik Ji</span></h2>
+      <p id="dateLbl" style="font-size:12px;color:var(--grey-4);margin-top:2px"></p>
+    </div>
+    <div id="driveCard"></div>
+    <div class="stats-grid">
+      <div class="stat-card orange"><div class="stat-label">Properties</div><div class="stat-value" id="sProps">0</div><div class="stat-sub">Registered</div></div>
+      <div class="stat-card green"><div class="stat-label">This Month</div><div class="stat-value" id="sRent">₹0</div><div class="stat-sub">Rent Collected</div></div>
+      <div class="stat-card red" onclick="openSh_pending()" style="cursor:pointer"><div class="stat-label">Pending</div><div class="stat-value" id="sPend">₹0</div><div class="stat-sub">Tap to view ↗</div></div>
+      <div class="stat-card blue" onclick="showPage('disputes')" style="cursor:pointer"><div class="stat-label">Open Cases</div><div class="stat-value" id="sCases">0</div><div class="stat-sub">Disputes</div></div>
+    </div>
+    <!-- ALERTS BANNER -->
+    <div id="alertsBanner" onclick="if(event.target.classList.contains('alert-pending-link')){openSh_pending();}"></div>
+    <!-- UPCOMING DATES -->
+    <div class="sec-head"><div class="sec-title">📅 Upcoming Dates</div><button class="sec-btn" onclick="showPage('disputes')">All Cases →</button></div>
+    <div id="upcomingDates"></div>
+    <!-- RECENT ACTIVITY -->
+    <div class="sec-head"><div class="sec-title">Recent Activity</div><button class="sec-btn" onclick="showPage('finance')">View All →</button></div>
+    <div id="dashActivity"></div>
+  </div>
+
+  <!-- PROPERTIES -->
+  <div class="page" id="page-properties">
+    <div class="sec-head" style="margin-top:0"><div class="sec-title">My Properties</div><button class="sec-btn" onclick="openAddProp()">+ Add New</button></div>
+    <div class="search-box"><span>🔍</span><input type="text" placeholder="Search properties..." oninput="renderProps('',this.value.toLowerCase())"></div>
+    <div class="chip-row" id="propChips">
+      <div class="chip active" onclick="setPF(this,'all')">All</div>
+      <div class="chip" onclick="setPF(this,'room')">🛏 Room</div>
+      <div class="chip" onclick="setPF(this,'flat')">🏢 Flat</div>
+      <div class="chip" onclick="setPF(this,'land')">🌿 Land</div>
+      <div class="chip" onclick="setPF(this,'shop')">🏪 Shop</div>
+      <div class="chip" onclick="setPF(this,'plot')">📐 Plot</div>
+    </div>
+    <div id="propList"></div>
+  </div>
+
+  <!-- TENANTS -->
+  <div class="page" id="page-tenants">
+    <div class="sec-head" style="margin-top:0"><div class="sec-title">Tenants</div><button class="sec-btn" onclick="openAddTenant()">+ Add Tenant</button></div>
+    <div class="search-box"><span>🔍</span><input type="text" placeholder="Search tenants..." oninput="renderTenants(this.value.toLowerCase())"></div>
+    <div class="toggle-row">
+      <button class="tog-tab active" onclick="setTF(this,'all')">All</button>
+      <button class="tog-tab" onclick="setTF(this,'active')">Active</button>
+      <button class="tog-tab" onclick="setTF(this,'vacated')">Vacated</button>
+    </div>
+    <div id="tenList"></div>
+  </div>
+
+  <!-- FINANCE -->
+  <div class="page" id="page-finance">
+    <div class="fin-summary">
+      <div class="fin-net-lbl">Net Balance — This Month</div>
+      <div class="fin-net-amt" id="fNet">₹0</div>
+      <div class="fin-row">
+        <div><div class="fin-sub-val pos" id="fIn">₹0</div><div class="fin-sub-lbl">📥 Income</div></div>
+        <div><div class="fin-sub-val neg" id="fOut">₹0</div><div class="fin-sub-lbl">📤 Expenses</div></div>
+      </div>
+    </div>
+    <div class="month-row" id="monthTabs"></div>
+    <div class="toggle-row">
+      <button class="tog-tab active" onclick="setFF(this,'all')">All</button>
+      <button class="tog-tab" onclick="setFF(this,'rent')">Rent</button>
+      <button class="tog-tab" onclick="setFF(this,'expense')">Expenses</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:11px">
+      <button class="btn btn-green btn-full" style="flex:1;padding:10px;font-size:13px" onclick="openAddRent()">+ Add Rent</button>
+      <button class="btn btn-red btn-full" style="flex:1;padding:10px;font-size:13px" onclick="openAddExp()">+ Expense</button>
+    </div>
+    <div id="finList"></div>
+  </div>
+
+  <!-- DISPUTES -->
+  <div class="page" id="page-disputes">
+    <div class="sec-head" style="margin-top:0"><div class="sec-title">Disputes & Cases</div><button class="sec-btn" onclick="openAddDisp()">+ Add Case</button></div>
+    <div class="toggle-row">
+      <button class="tog-tab active" onclick="setDisF(this,'all')">All</button>
+      <button class="tog-tab" onclick="setDisF(this,'open')">Open</button>
+      <button class="tog-tab" onclick="setDisF(this,'hearing')">Hearing</button>
+      <button class="tog-tab" onclick="setDisF(this,'closed')">Closed</button>
+    </div>
+    <div id="disList"></div>
+  </div>
+
+  <!-- REPORTS -->
+  <div class="page" id="page-reports">
+    <div class="sec-head" style="margin-top:0"><div class="sec-title">📊 Download Reports</div></div>
+    <div class="notice info">Reports are generated from your current data. Choose format: Excel (.xlsx) or PDF (print).</div>
+
+    <div class="rpt-section">Properties</div>
+    <div class="rpt-menu">
+      <div class="rpt-item" onclick="rptAllProps('excel')"><div class="rpt-ico" style="background:var(--saffron-pale)">🏘️</div><div><div class="rpt-label">All Properties — Excel</div><div class="rpt-sub">Name, type, address, rent, tenants</div></div><div class="rpt-arrow">📊</div></div>
+      <div class="rpt-item" onclick="rptAllProps('pdf')"><div class="rpt-ico" style="background:#F5F3FF">📄</div><div><div class="rpt-label">All Properties — PDF</div><div class="rpt-sub">Printable summary report</div></div><div class="rpt-arrow">🖨️</div></div>
+      <div class="rpt-item" onclick="openSh('rptPropOv')"><div class="rpt-ico" style="background:var(--green-pale)">📋</div><div><div class="rpt-label">Single Property Detail Report</div><div class="rpt-sub">Full details + tenants + finance history</div></div><div class="rpt-arrow">↓</div></div>
+    </div>
+
+    <div class="rpt-section">Tenants</div>
+    <div class="rpt-menu">
+      <div class="rpt-item" onclick="rptAllTenants('excel')"><div class="rpt-ico" style="background:var(--blue-pale)">👥</div><div><div class="rpt-label">All Tenants — Excel</div><div class="rpt-sub">Name, contact, property, rent, status</div></div><div class="rpt-arrow">📊</div></div>
+      <div class="rpt-item" onclick="openSh('rptReceiptOv')"><div class="rpt-ico" style="background:#FEF3C7">🧾</div><div><div class="rpt-label">Generate Rent Receipt</div><div class="rpt-sub">Official rent receipt for a payment</div></div><div class="rpt-arrow">🖨️</div></div>
+    </div>
+
+    <div class="rpt-section">Finance</div>
+    <div class="rpt-menu">
+      <div class="rpt-item" onclick="rptMonthly('excel')"><div class="rpt-ico" style="background:var(--green-pale)">💰</div><div><div class="rpt-label">Monthly Finance — Excel</div><div class="rpt-sub">Income vs expense for current month</div></div><div class="rpt-arrow">📊</div></div>
+      <div class="rpt-item" onclick="rptMonthly('pdf')"><div class="rpt-ico" style="background:var(--saffron-pale)">📊</div><div><div class="rpt-label">Monthly Finance — PDF</div><div class="rpt-sub">Printable monthly report</div></div><div class="rpt-arrow">🖨️</div></div>
+      <div class="rpt-item" onclick="rptFullFinance()"><div class="rpt-ico" style="background:var(--grey-1)">📈</div><div><div class="rpt-label">Full Finance Export — Excel</div><div class="rpt-sub">All transactions, all time</div></div><div class="rpt-arrow">📊</div></div>
+    </div>
+
+    <div class="rpt-section">Disputes</div>
+    <div class="rpt-menu">
+      <div class="rpt-item" onclick="rptDisputes('excel')"><div class="rpt-ico" style="background:var(--purple-pale)">⚖️</div><div><div class="rpt-label">All Disputes — Excel</div><div class="rpt-sub">Case titles, status, hearings</div></div><div class="rpt-arrow">📊</div></div>
+    </div>
+
+    <div class="rpt-section">Full Backup</div>
+    <div class="rpt-menu">
+      <div class="rpt-item" onclick="rptFullBackupExcel()"><div class="rpt-ico" style="background:#FEF3C7">📦</div><div><div class="rpt-label">Complete Data — Excel (All Sheets)</div><div class="rpt-sub">Properties + Tenants + Finance + Disputes in one file</div></div><div class="rpt-arrow">📊</div></div>
+      <div class="rpt-item" onclick="rptJsonBackup()"><div class="rpt-ico" style="background:var(--grey-1)">💾</div><div><div class="rpt-label">Raw Data Backup — JSON</div><div class="rpt-sub">Full backup file for safekeeping</div></div><div class="rpt-arrow">↓</div></div>
+    </div>
+  </div>
+
+
+  <!-- MEETINGS PAGE -->
+  <div class="page" id="page-meetings">
+    <div class="sec-head" style="margin-top:0"><div class="sec-title">🤝 Meetings & MOM</div><button class="sec-btn" onclick="openAddMeeting()">+ Add Meeting</button></div>
+    <div class="toggle-row">
+      <button class="tog-tab active" onclick="setMeetF(this,'all')">All</button>
+      <button class="tog-tab" onclick="setMeetF(this,'property')">Property</button>
+      <button class="tog-tab" onclick="setMeetF(this,'legal')">Legal</button>
+      <button class="tog-tab" onclick="setMeetF(this,'tenant')">Tenant</button>
+    </div>
+    <div id="meetList"></div>
+  </div>
+
+  <!-- MAINTENANCE PAGE -->
+  <div class="page" id="page-maintenance">
+    <div class="sec-head" style="margin-top:0"><div class="sec-title">🔧 Maintenance</div><button class="sec-btn" onclick="openAddMaint()">+ Schedule</button></div>
+    <div class="toggle-row">
+      <button class="tog-tab active" onclick="setMaintF(this,'all')">All</button>
+      <button class="tog-tab" onclick="setMaintF(this,'pending')">Pending</button>
+      <button class="tog-tab" onclick="setMaintF(this,'scheduled')">Scheduled</button>
+      <button class="tog-tab" onclick="setMaintF(this,'done')">Done</button>
+    </div>
+    <div id="maintList"></div>
+  </div>
+</div><!-- /mainApp -->
+
+<button class="fab" id="fab" style="display:none">+</button>
+
+<nav class="bottom-nav" id="bottomNav" style="display:none">
+  <button class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')"><span class="nav-icon">🏠</span>Home</button>
+  <button class="nav-item" id="nav-properties" onclick="showPage('properties')"><span class="nav-icon">🏘️</span>Props</button>
+  <button class="nav-item" id="nav-tenants" onclick="showPage('tenants')"><span class="nav-icon">👥</span>Tenants</button>
+  <button class="nav-item" id="nav-finance" onclick="showPage('finance')"><span class="nav-icon">💰</span>Finance</button>
+  <button class="nav-item" id="nav-disputes" onclick="showPage('disputes')"><span class="nav-icon">⚖️</span>Cases<span class="nav-badge" id="disBadge">0</span></button>
+  <button class="nav-item" id="nav-meetings" onclick="showPage('meetings')"><span class="nav-icon">🤝</span>Meetings</button>
+  <button class="nav-item" id="nav-maintenance" onclick="showPage('maintenance')"><span class="nav-icon">🔧</span>Maint<span class="nav-badge" id="maintBadge">0</span></button>
+  <button class="nav-item" id="nav-reports" onclick="showPage('reports')"><span class="nav-icon">📊</span>Reports</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+
+<!-- ════════ FORMS / OVERLAYS ════════ -->
+
+<!-- PROPERTY -->
+<div class="overlay" id="propOv"><div class="bsheet"><div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title" id="propTitle">🏘️ Add Property</div><button class="sheet-close" onclick="closeSh('propOv')">✕</button></div>
+  <div class="sheet-body">
+    <input type="hidden" id="epId">
+    <div class="fg"><label class="fl">Property Name <span class="req">*</span></label><input class="fi" id="pName" placeholder="e.g. Room No.5, Flat A-201, Plot 12"></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Type <span class="req">*</span></label>
+        <select class="fsel" id="pType"><option value="">Select</option><option value="room">🛏 Room</option><option value="flat">🏢 Flat</option><option value="land">🌿 Land</option><option value="structure">🏗 Structure</option><option value="shop">🏪 Shop</option><option value="plot">📐 Plot</option><option value="warehouse">🏭 Warehouse</option></select>
+      </div>
+      <div class="fg"><label class="fl">Survey / Plot No.</label><input class="fi" id="pSurvey"></div>
+    </div>
+    <div class="fg"><label class="fl">Full Address <span class="req">*</span></label><textarea class="fta" id="pAddr" rows="2" placeholder="Village, Taluka, District, State, PIN"></textarea></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Area</label><input class="fi" id="pArea" placeholder="450 sqft"></div>
+      <div class="fg"><label class="fl">Expected Rent ₹</label><input class="fi" id="pRent" type="number"></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Khasra No.</label><input class="fi" id="pKhasra"></div>
+      <div class="fg"><label class="fl">Ownership</label>
+        <select class="fsel" id="pOwn"><option value="self">Self-Owned</option><option value="inherited">Inherited</option><option value="partnership">Partnership</option><option value="govt">Govt Allotted</option></select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Remarks</label><textarea class="fta" id="pRem" rows="2"></textarea></div>
+    <div style="background:var(--grey-1);border-radius:var(--radius-sm);padding:13px;margin-bottom:13px;border:1.5px dashed var(--grey-2)">
+      <div style="font-size:11px;font-weight:700;color:var(--navy-soft);text-transform:uppercase;margin-bottom:10px">📎 Document Links (Google Drive)</div>
+      <div class="frow">
+        <div class="fg"><label class="fl">Doc Type</label><select class="fsel" id="pDtype"><option value="deed">📜 Sale/Gift Deed</option><option value="patta">🗺 Patta</option><option value="noksha">📐 Naksha/Map</option><option value="tax">🧾 Tax Receipt</option><option value="other">📎 Other</option></select></div>
+        <div class="fg"><label class="fl">Doc Name</label><input class="fi" id="pDname" placeholder="e.g. Sale Deed 2010"></div>
+      </div>
+      <input class="fi" id="pDlink" placeholder="Paste Google Drive link here (optional)" style="margin-bottom:8px">
+      <button class="btn btn-secondary" style="width:100%" onclick="addPropDoc()">➕ Add Document Entry</button>
+      <div id="pDocsList"></div>
+    </div>
+    <button class="btn btn-primary btn-full" id="pSaveBtn" onclick="saveProp()">✅ Save Property</button>
+  </div>
+</div></div>
+
+<!-- TENANT -->
+<div class="overlay" id="tenOv"><div class="bsheet"><div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title" id="tenTitle">👤 Add Tenant</div><button class="sheet-close" onclick="closeSh('tenOv')">✕</button></div>
+  <div class="sheet-body">
+    <input type="hidden" id="etId">
+    <div class="fg"><label class="fl">Full Name <span class="req">*</span></label><input class="fi" id="tName"></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Mobile <span class="req">*</span></label><input class="fi" id="tPhone" type="tel"></div>
+      <div class="fg"><label class="fl">Aadhaar No.</label><input class="fi" id="tAadh"></div>
+    </div>
+    <div class="fg"><label class="fl">Property <span class="req">*</span></label><select class="fsel" id="tProp"><option value="">Select Property</option></select></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Move-In Date <span class="req">*</span></label><input class="fi" id="tMovein" type="date"></div>
+      <div class="fg"><label class="fl">Monthly Rent ₹ <span class="req">*</span></label><input class="fi" id="tRent" type="number"></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Security Deposit ₹</label><input class="fi" id="tDep" type="number"></div>
+      <div class="fg"><label class="fl">Rent Due Date</label><select class="fsel" id="tDue"><option value="1">1st</option><option value="5">5th</option><option value="10">10th</option><option value="15">15th</option><option value="20">20th</option><option value="25">25th</option><option value="28">28th</option></select></div>
+    </div>
+    <div class="fg"><label class="fl">Permanent Address</label><textarea class="fta" id="tAddr" rows="2"></textarea></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Occupation</label><input class="fi" id="tOcc"></div>
+      <div class="fg"><label class="fl">Emergency Contact</label><input class="fi" id="tEmerg"></div>
+    </div>
+    <div style="background:var(--grey-1);border-radius:var(--radius-sm);padding:13px;margin-bottom:13px;border:1.5px dashed var(--grey-2)">
+      <div style="font-size:11px;font-weight:700;color:var(--navy-soft);text-transform:uppercase;margin-bottom:10px">📎 Document Links</div>
+      <div class="frow">
+        <div class="fg"><label class="fl">Doc Type</label><select class="fsel" id="tDtype"><option value="agreement">📄 Agreement</option><option value="aadhaar">🪪 Aadhaar</option><option value="photo">📷 Photo ID</option><option value="other">📎 Other</option></select></div>
+        <div class="fg"><label class="fl">Doc Name</label><input class="fi" id="tDname"></div>
+      </div>
+      <input class="fi" id="tDlink" placeholder="Paste Google Drive link here (optional)" style="margin-bottom:8px">
+      <button class="btn btn-secondary" style="width:100%" onclick="addTenDoc()">➕ Add Document Entry</button>
+      <div id="tDocsList"></div>
+    </div>
+    <button class="btn btn-primary btn-full" id="tSaveBtn" onclick="saveTen()">✅ Save Tenant</button>
+  </div>
+</div></div>
+
+<!-- RENT -->
+<div class="overlay" id="rentOv"><div class="bsheet"><div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title" id="rentTitle">💰 Record Rent</div><button class="sheet-close" onclick="closeSh('rentOv')">✕</button></div>
+  <div class="sheet-body">
+    <input type="hidden" id="erId">
+    <div class="fg"><label class="fl">Tenant <span class="req">*</span></label><select class="fsel" id="rTen"><option value="">Select Tenant</option></select></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Amount ₹ <span class="req">*</span></label><input class="fi" id="rAmt" type="number"></div>
+      <div class="fg"><label class="fl">Date <span class="req">*</span></label><input class="fi" id="rDate" type="date"></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Month</label><select class="fsel" id="rMon"><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select></div>
+      <div class="fg"><label class="fl">Year</label><input class="fi" id="rYr" type="number"></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Payment Mode</label><select class="fsel" id="rMode"><option value="cash">💵 Cash</option><option value="upi">📱 UPI / GPay</option><option value="bank">🏦 Bank Transfer</option><option value="cheque">📝 Cheque</option></select></div>
+      <div class="fg"><label class="fl">UPI Ref / UTR No.</label><input class="fi" id="rRef"></div>
+    </div>
+    <div class="fg"><label class="fl">Receipt Drive Link (optional)</label><input class="fi" id="rDlink" placeholder="https://drive.google.com/file/..."></div>
+    <button class="btn btn-primary btn-full" id="rSaveBtn" onclick="saveRent()">✅ Save Rent Record</button>
+  </div>
+</div></div>
+
+<!-- EXPENSE -->
+<div class="overlay" id="expOv"><div class="bsheet"><div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title" id="expTitle">🔧 Add Expense</div><button class="sheet-close" onclick="closeSh('expOv')">✕</button></div>
+  <div class="sheet-body">
+    <input type="hidden" id="eeId">
+    <div class="fg"><label class="fl">Property</label><select class="fsel" id="eProp"><option value="">Select Property</option></select></div>
+    <div class="fg"><label class="fl">Expense Type <span class="req">*</span></label><select class="fsel" id="eType"><option value="repair">🔨 Repair / Maintenance</option><option value="tax">🧾 Property Tax</option><option value="electric">⚡ Electricity</option><option value="water">💧 Water</option><option value="legal">⚖️ Legal Fees</option><option value="insurance">🛡 Insurance</option><option value="construction">🏗 Construction</option><option value="agent">🤝 Agent / Broker</option><option value="other">📎 Other</option></select></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Amount ₹ <span class="req">*</span></label><input class="fi" id="eAmt" type="number"></div>
+      <div class="fg"><label class="fl">Date <span class="req">*</span></label><input class="fi" id="eDate" type="date"></div>
+    </div>
+    <div class="fg"><label class="fl">Description <span class="req">*</span></label><textarea class="fta" id="eDesc" rows="2"></textarea></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Paid To (Vendor)</label><input class="fi" id="eVend"></div>
+      <div class="fg"><label class="fl">Bill No.</label><input class="fi" id="eBill"></div>
+    </div>
+    <div class="fg"><label class="fl">Bill Drive Link (optional)</label><input class="fi" id="eDlink" placeholder="https://drive.google.com/file/..."></div>
+    <button class="btn btn-primary btn-full" id="eSaveBtn" onclick="saveExp()">✅ Save Expense</button>
+  </div>
+</div></div>
+
+<!-- DISPUTE -->
+<div class="overlay" id="disOv"><div class="bsheet"><div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title" id="disTitle">⚖️ Add Dispute</div><button class="sheet-close" onclick="closeSh('disOv')">✕</button></div>
+  <div class="sheet-body">
+    <input type="hidden" id="edId">
+    <div class="frow">
+      <div class="fg"><label class="fl">Case Type <span class="req">*</span></label><select class="fsel" id="dType"><option value="legal">⚖️ Legal</option><option value="illegal">🚨 Illegal Possession</option><option value="civil">🏛 Civil</option><option value="revenue">📋 Revenue / Land</option><option value="tenant">🏠 Tenant</option><option value="encroach">🚧 Encroachment</option><option value="boundary">📏 Boundary</option></select></div>
+      <div class="fg"><label class="fl">Status</label><select class="fsel" id="dStatus"><option value="open">🔴 Open</option><option value="hearing">🟡 Hearing</option><option value="closed">🟢 Closed</option></select></div>
+    </div>
+    <div class="fg"><label class="fl">Case Title <span class="req">*</span></label><input class="fi" id="dTitle"></div>
+    <div class="fg"><label class="fl">Related Property</label><select class="fsel" id="dProp"><option value="">Optional</option></select></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Case / FIR No.</label><input class="fi" id="dCaseno"></div>
+      <div class="fg"><label class="fl">Court / Office</label><input class="fi" id="dCourt"></div>
+    </div>
+    <div class="fg"><label class="fl">Opposite Party</label><input class="fi" id="dOpp"></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Filing Date</label><input class="fi" id="dFiled" type="date"></div>
+      <div class="fg"><label class="fl">Next Hearing</label><input class="fi" id="dNext" type="date"></div>
+    </div>
+    <div class="fg"><label class="fl">Lawyer & Contact</label><input class="fi" id="dLawyer"></div>
+    <div class="fg"><label class="fl">Description / Notes</label><textarea class="fta" id="dDesc" rows="3"></textarea></div>
+    <button class="btn btn-primary btn-full" id="dSaveBtn" onclick="saveDisp()">✅ Save Case</button>
+  </div>
+</div></div>
+
+<!-- PROPERTY DETAIL -->
+<div class="overlay" id="pdOv"><div class="bsheet"><div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title" id="pdTitle"></div><button class="sheet-close" onclick="closeSh('pdOv')">✕</button></div>
+  <div class="sheet-body" id="pdBody"></div>
+</div></div>
+
+<!-- TENANT DETAIL -->
+<div class="overlay" id="tdOv"><div class="bsheet"><div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title" id="tdTitle"></div><button class="sheet-close" onclick="closeSh('tdOv')">✕</button></div>
+  <div class="sheet-body" id="tdBody"></div>
+</div></div>
+
+<!-- PROFILE -->
+<div class="overlay" id="profileOv"><div class="bsheet"><div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title">👤 My Account</div><button class="sheet-close" onclick="closeSh('profileOv')">✕</button></div>
+  <div class="sheet-body">
+    <div style="text-align:center;padding:12px 0 20px">
+      <div id="profPic" style="width:64px;height:64px;border-radius:50%;background:var(--saffron);color:white;font-family:'Baloo 2',cursive;font-size:28px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;overflow:hidden"></div>
+      <div id="profName" style="font-family:'Baloo 2',cursive;font-size:18px;font-weight:800"></div>
+      <div id="profEmail" style="font-size:12px;color:var(--grey-4);margin-top:3px"></div>
+    </div>
+    <div class="drive-card">
+      <div class="drive-card-head"><div class="drive-card-ico">📁</div>
+        <div><div class="drive-card-title">Google Drive Sync</div><div class="drive-card-sub" id="driveStatus">Checking...</div></div>
+      </div>
+      <div class="drive-card-acts">
+        <button class="btn btn-blue btn-sm" onclick="manualSync()">🔄 Sync Now</button>
+        <button class="btn btn-secondary btn-sm" onclick="openInDrive()">📁 View in Drive</button>
+      </div>
+    </div>
+    <button class="btn btn-red btn-full" onclick="signOut()">🚪 Sign Out</button>
+  </div>
+</div></div>
+
+<!-- REPORT: Single Property -->
+<div class="overlay" id="rptPropOv"><div class="bsheet"><div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title">📋 Property Report</div><button class="sheet-close" onclick="closeSh('rptPropOv')">✕</button></div>
+  <div class="sheet-body">
+    <div class="fg"><label class="fl">Select Property</label><select class="fsel" id="rptPropSel"><option value="">Select Property</option></select></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" style="flex:1" onclick="rptSingleProp('excel')">📊 Excel</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="rptSingleProp('pdf')">🖨️ PDF</button>
+    </div>
+  </div>
+</div></div>
+
+<!-- REPORT: Rent Receipt -->
+<div class="overlay" id="rptReceiptOv"><div class="bsheet"><div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title">🧾 Rent Receipt</div><button class="sheet-close" onclick="closeSh('rptReceiptOv')">✕</button></div>
+  <div class="sheet-body">
+    <div class="fg"><label class="fl">Select Tenant</label><select class="fsel" id="rptTenSel" onchange="loadReceiptPayments(this.value)"><option value="">Select Tenant</option></select></div>
+    <div class="fg"><label class="fl">Select Payment</label><select class="fsel" id="rptPaySel"><option value="">Select Payment</option></select></div>
+    <button class="btn btn-primary btn-full" onclick="rptReceipt()">🖨️ Print / Download Receipt</button>
+  </div>
+</div></div>
+
+
+<!-- PENDING DETAILS OVERLAY -->
+<div class="overlay" id="pendingOv"><div class="bsheet"><div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title">💸 Pending Rent Details</div><button class="sheet-close" onclick="closeSh('pendingOv')">✕</button></div>
+  <div class="sheet-body" id="pendingBody"></div>
+</div></div>
+
+<!-- MEETING FORM -->
+<div class="overlay" id="meetOv"><div class="bsheet"><div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title" id="meetTitle">🤝 Add Meeting</div><button class="sheet-close" onclick="closeSh('meetOv')">✕</button></div>
+  <div class="sheet-body">
+    <input type="hidden" id="emId">
+    <div class="fg"><label class="fl">Meeting Title <span class="req">*</span></label><input class="fi" id="mTitle" placeholder="e.g. Rent discussion with Sharma Ji"></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Date <span class="req">*</span></label><input class="fi" id="mDate" type="date"></div>
+      <div class="fg"><label class="fl">Type</label>
+        <select class="fsel" id="mType"><option value="property">🏘️ Property</option><option value="legal">⚖️ Legal</option><option value="tenant">👤 Tenant</option><option value="finance">💰 Finance</option><option value="other">📎 Other</option></select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Related Property</label><select class="fsel" id="mProp"><option value="">Optional</option></select></div>
+    <div class="fg"><label class="fl">People Present <span class="req">*</span></label><input class="fi" id="mPeople" placeholder="e.g. Aajinkya, Sharma Ji, Lawyer Mehta"></div>
+    <div class="fg"><label class="fl">Venue / Location</label><input class="fi" id="mVenue" placeholder="e.g. Office, Court, Property site"></div>
+    <div class="fg"><label class="fl">Minutes of Meeting (MOM) <span class="req">*</span></label><textarea class="fta" id="mMom" rows="4" placeholder="What was discussed? Key points..."></textarea></div>
+    <div class="fg"><label class="fl">Outcome / Decision</label><textarea class="fta" id="mOutcome" rows="3" placeholder="What was decided? Next steps?"></textarea></div>
+    <div class="fg"><label class="fl">Follow-up Date</label><input class="fi" id="mFollowup" type="date"></div>
+    <button class="btn btn-primary btn-full" id="mSaveBtn" onclick="saveMeeting()">✅ Save Meeting</button>
+  </div>
+</div></div>
+
+<!-- MEETING DETAIL -->
+<div class="overlay" id="meetDetailOv"><div class="bsheet"><div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title" id="meetDetailTitle"></div><button class="sheet-close" onclick="closeSh('meetDetailOv')">✕</button></div>
+  <div class="sheet-body" id="meetDetailBody"></div>
+</div></div>
+
+<!-- MAINTENANCE FORM -->
+<div class="overlay" id="maintOv"><div class="bsheet"><div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title" id="maintTitle">🔧 Schedule Maintenance</div><button class="sheet-close" onclick="closeSh('maintOv')">✕</button></div>
+  <div class="sheet-body">
+    <input type="hidden" id="emaId">
+    <div class="fg"><label class="fl">Work Description <span class="req">*</span></label><input class="fi" id="maDesc" placeholder="e.g. Roof waterproofing, Paint work"></div>
+    <div class="fg"><label class="fl">Property <span class="req">*</span></label><select class="fsel" id="maProp"><option value="">Select Property</option></select></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Category</label>
+        <select class="fsel" id="maCat">
+          <option value="plumbing">🚰 Plumbing</option>
+          <option value="electrical">⚡ Electrical</option>
+          <option value="painting">🖌️ Painting</option>
+          <option value="roofing">🏠 Roofing</option>
+          <option value="flooring">🪵 Flooring</option>
+          <option value="carpentry">🪚 Carpentry</option>
+          <option value="cleaning">🧹 Cleaning</option>
+          <option value="pest">🐛 Pest Control</option>
+          <option value="other">🔧 Other</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Priority</label>
+        <select class="fsel" id="maPrio"><option value="high">🔴 High</option><option value="medium">🟡 Medium</option><option value="low">🟢 Low</option></select>
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Scheduled Date <span class="req">*</span></label><input class="fi" id="maDate" type="date"></div>
+      <div class="fg"><label class="fl">Status</label>
+        <select class="fsel" id="maStatus"><option value="scheduled">📅 Scheduled</option><option value="pending">⏳ Pending</option><option value="in_progress">🔄 In Progress</option><option value="done">✅ Done</option></select>
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Estimated Cost ₹</label><input class="fi" id="maCost" type="number"></div>
+      <div class="fg"><label class="fl">Contractor / Vendor</label><input class="fi" id="maVendor"></div>
+    </div>
+    <div class="fg"><label class="fl">Vendor Contact</label><input class="fi" id="maContact" type="tel"></div>
+    <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="maNotes" rows="2"></textarea></div>
+    <button class="btn btn-primary btn-full" id="maSaveBtn" onclick="saveMaint()">✅ Save Maintenance</button>
+  </div>
+</div></div>
+<script>
+// ════════════════════════════════════════════════════════════
+// ZAMEEN MAALIK v7 — Google Drive JSON Sync (No Apps Script)
+// SAME PATTERN AS FACADEOPS:
+//   1. Sign in with Google OAuth (Google Identity Services)
+//   2. All data saved as ONE JSON file in Google Drive
+//      Folder: "Zameen Maalik" → File: "zameen_maalik_data.json"
+//   3. Open app on any device → sign in → data loads automatically
+//   4. Download reports as Excel (.xlsx) or PDF (print)
+// ════════════════════════════════════════════════════════════
+
+// ── GOOGLE OAUTH CONFIG ──────────────────────────────────────
+// Replace this with your own Google OAuth Client ID
+// Get it FREE at: console.cloud.google.com → APIs & Services → Credentials
+// Create "OAuth 2.0 Client ID" → Web application
+// Add your Netlify URL to "Authorized JavaScript origins"
+var GOOGLE_CLIENT_ID = '261460736819-hlh99n8qnopo7he8q8ahetqv3bt5upkm.apps.googleusercontent.com';
+
+var DRIVE_FOLDER_NAME = 'Zameen Maalik';
+var DRIVE_FILE_NAME   = 'zameen_maalik_data.json';
+var DRIVE_SCOPE       = 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
+
+// ── APP STATE ─────────────────────────────────────────────────
+var S = { props:[], tens:[], fins:[], disps:[], lastUpdated:null };
+var curMon = new Date().getMonth(), curYr = new Date().getFullYear();
+var flt = { prop:'all', ten:'all', fin:'all', dis:'all' };
+var tmpPropDocs = [], tmpTenDocs = [];
+var tokenClient, accessToken = null, driveFileId = null, driveFolderId = null;
+var currentUser = null, isLocalMode = false, isSyncing = false;
+var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// ── UTILS ─────────────────────────────────────────────────────
+var uid   = ()=> Date.now().toString(36)+Math.random().toString(36).substr(2,5);
+var rp    = n=> '₹'+(parseInt(n)||0).toLocaleString('en-IN');
+var fd    = d=>{ try{return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return d||'';} };
+var today = ()=> new Date().toISOString().split('T')[0];
+var CM    = ()=> MONTHS[curMon];
+var gp    = id=> S.props.find(p=>p.id===id)||{};
+var gt    = id=> S.tens.find(t=>t.id===id)||{};
+var pn    = id=> gp(id).name||'—';
+var tn    = id=> gt(id).name||'—';
+var pico  = t=> ({room:'🛏',flat:'🏢',land:'🌿',structure:'🏗',shop:'🏪',plot:'📐',warehouse:'🏭'}[t]||'🏘️');
+var eico  = t=> ({repair:'🔨',tax:'🧾',electric:'⚡',water:'💧',legal:'⚖️',insurance:'🛡',construction:'🏗',agent:'🤝',other:'📎'}[t]||'🔧');
+var dico  = t=> ({agreement:'📄',deed:'📜',tax:'🧾',legal:'⚖️',aadhaar:'🪪',patta:'🗺',noksha:'📐',fir:'🚨',other:'📎'}[t]||'📎');
+
+function toast(msg){ let t=document.getElementById('toast'); t.textContent=msg; t.classList.remove('show'); void t.offsetWidth; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3500); }
+function setSyncBar(msg,show,err=false){ let b=document.getElementById('syncBar'); document.getElementById('syncMsg').textContent=msg; b.classList.toggle('show',show); b.classList.toggle('err',err); }
+function setSyncBtn(label,state){ let b=document.getElementById('syncBtn'); document.getElementById('syncLbl').textContent=label; b.className='tb-btn '+state; }
+function popSel(id,arr,fn){ let s=document.getElementById(id),f=s.options[0];s.innerHTML='';s.appendChild(f);arr.forEach(x=>{let o=document.createElement('option');o.value=x.id;o.textContent=fn(x);s.appendChild(o);}); }
+function saveLocal(){ try{localStorage.setItem('zm7',JSON.stringify({S,driveFileId,driveFolderId,currentUser}));}catch(e){} }
+function loadLocal(){ try{let d=localStorage.getItem('zm7');if(d){let p=JSON.parse(d);if(p.S)S=Object.assign(S,p.S);if(p.driveFileId)driveFileId=p.driveFileId;if(p.driveFolderId)driveFolderId=p.driveFolderId;if(p.currentUser)currentUser=p.currentUser;}}catch(e){} }
+
+// ── GOOGLE OAUTH — REDIRECT FLOW ──────────────────────────────
+function initGoogleAuth(){
+  // Returning from Google with token in URL hash?
+  var hash = window.location.hash;
+  if(hash && hash.indexOf('access_token') > -1){
+    var params = new URLSearchParams(hash.substring(1));
+    var token = params.get('access_token');
+    var expiresIn = parseInt(params.get('expires_in') || '3600');
+    if(token){
+      accessToken = token;
+      localStorage.setItem('zm7_tok', JSON.stringify({token:token, exp:Date.now()+(expiresIn-120)*1000}));
+      history.replaceState(null, '', window.location.pathname);
+      fetchUserInfo().then(function(){ loadLocal(); onSignedIn(true); loadFromDrive(); });
+      return;
+    }
+  }
+  // Saved token still valid?
+  try {
+    var saved = localStorage.getItem('zm7_tok');
+    if(saved){
+      var t = JSON.parse(saved);
+      if(t.exp > Date.now()){
+        accessToken = t.token;
+        loadLocal();
+        fetchUserInfo().then(function(){ onSignedIn(false); });
+        return;
+      } else {
+        localStorage.removeItem('zm7_tok');
+      }
+    }
+  } catch(e){}
+  // Show login screen
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function signInWithGoogle(){
+  var redirectUri = 'https://aajinkyabhoir-blip.github.io/zameen-maalik/';
+  var url = 'https://accounts.google.com/o/oauth2/v2/auth'
+    + '?client_id=' + encodeURIComponent(GOOGLE_CLIENT_ID)
+    + '&redirect_uri=' + encodeURIComponent(redirectUri)
+    + '&response_type=token'
+    + '&scope=' + encodeURIComponent(DRIVE_SCOPE)
+    + '&prompt=select_account';
+  window.location.href = url;
+}
+
+function fetchUserInfo(){
+  return fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: {Authorization: 'Bearer ' + accessToken}
+  }).then(function(r){ return r.json(); }).then(function(u){
+    currentUser = {name:u.name, email:u.email, picture:u.picture, init:(u.name||'M')[0].toUpperCase()};
+    saveLocal();
+  }).catch(function(){ currentUser = {name:'Maalik Ji', init:'M'}; });
+}
+
+function signOut(){
+  localStorage.removeItem('zm7');
+  localStorage.removeItem('zm7_tok');
+  location.reload();
+}
+function useLocalMode(){
+  isLocalMode=true; currentUser={name:'Maalik Ji',init:'M'};
+  loadLocal(); onSignedIn(false);
+}
+
+function onSignedIn(isNew){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('topbar').style.display='flex';
+  document.getElementById('mainApp').style.display='block';
+  document.getElementById('bottomNav').style.display='flex';
+  document.getElementById('fab').style.display='flex';
+  let u=currentUser||{name:'Maalik Ji',init:'M'};
+  document.getElementById('uFirstName').textContent=(u.name||'').split(' ')[0]||'Maalik Ji';
+  document.getElementById('dateLbl').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  let av=document.getElementById('userAv');
+  if(u.picture){av.innerHTML=`<img src="${u.picture}">`;} else av.textContent=u.init||'M';
+  loadLocal();
+  renderAll();
+  if(!isLocalMode && accessToken) loadFromDrive();
+  else if(isLocalMode) { setSyncBtn('Local Mode','tb-btn'); renderDriveCard(false); }
+}
+
+function signOut(){
+  if(accessToken && typeof google!=='undefined') google.accounts.oauth2.revoke(accessToken);
+  localStorage.removeItem('zm7'); localStorage.removeItem('zm7_tok');
+  location.reload();
+}
+
+// ── GOOGLE DRIVE SYNC ─────────────────────────────────────────
+async function driveAPI(method,url,body,isUpload=false){
+  let headers={'Authorization':'Bearer '+accessToken};
+  if(!isUpload && body) headers['Content-Type']='application/json';
+  let r=await fetch(url,{method,headers,body:body?(isUpload?body:JSON.stringify(body)):undefined});
+  if(!r.ok) throw new Error('Drive API error '+r.status+': '+await r.text());
+  return r.json();
+}
+
+async function ensureFolder(){
+  if(driveFolderId) return driveFolderId;
+  // Search for existing folder
+  let res=await driveAPI('GET',`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)`);
+  if(res.files && res.files.length>0){ driveFolderId=res.files[0].id; return driveFolderId; }
+  // Create new folder
+  let folder=await driveAPI('POST','https://www.googleapis.com/drive/v3/files',{name:DRIVE_FOLDER_NAME,mimeType:'application/vnd.google-apps.folder'});
+  driveFolderId=folder.id; saveLocal(); return driveFolderId;
+}
+
+async function loadFromDrive(){
+  if(!accessToken){ return; }
+  setSyncBar('☁️ Loading from Google Drive...', true);
+  setSyncBtn('Loading...','tb-btn syncing');
+  try {
+    let folderId=await ensureFolder();
+    // Find the data file
+    let res=await driveAPI('GET',`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_NAME}' and '${folderId}' in parents and trashed=false&fields=files(id,name,modifiedTime)`);
+    if(res.files && res.files.length>0){
+      driveFileId=res.files[0].id; saveLocal();
+      let fileRes=await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,{headers:{Authorization:'Bearer '+accessToken}});
+      let driveData=await fileRes.json();
+      // Merge: use whichever is newer
+      let dTime=driveData.lastUpdated?new Date(driveData.lastUpdated):new Date(0);
+      let lTime=S.lastUpdated?new Date(S.lastUpdated):new Date(0);
+      if(dTime>=lTime){ S=Object.assign({props:[],tens:[],fins:[],disps:[]},driveData); saveLocal(); renderAll(); toast('✅ Data loaded from Google Drive!'); }
+      else { await saveToDrive(); }
+    } else { await saveToDrive(); toast('✅ New backup created in Drive!'); }
+    setSyncBtn('Synced ✓','tb-btn synced'); renderDriveCard(true);
+  } catch(e){
+    setSyncBtn('Error ✗','tb-btn error'); renderDriveCard(false);
+    toast('⚠️ Drive error: '+e.message);
+  }
+  setSyncBar('',false);
+}
+
+async function saveToDrive(){
+  if(!accessToken || isSyncing) return;
+  isSyncing=true; setSyncBtn('Saving...','tb-btn syncing');
+  try {
+    S.lastUpdated=new Date().toISOString();
+    let folderId=await ensureFolder();
+    let content=JSON.stringify(S);
+    let blob=new Blob([content],{type:'application/json'});
+    if(driveFileId){
+      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,{method:'PATCH',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:blob});
+    } else {
+      let boundary='zm_boundary_'+Date.now();
+      let meta=JSON.stringify({name:DRIVE_FILE_NAME,parents:[folderId]});
+      let body=`--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${boundary}--`;
+      let r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{Authorization:'Bearer '+accessToken,'Content-Type':`multipart/related; boundary=${boundary}`},body});
+      let created=await r.json(); driveFileId=created.id;
+    }
+    saveLocal(); setSyncBtn('Synced ✓','tb-btn synced'); renderDriveCard(true);
+  } catch(e){ setSyncBtn('Error ✗','tb-btn error'); }
+  isSyncing=false;
+}
+
+function afterSave(){ saveLocal(); if(!isLocalMode && accessToken) saveToDrive(); }
+async function manualSync(){ await loadFromDrive(); toast('🔄 Synced!'); closeSh('profileOv'); }
+function openInDrive(){ if(driveFolderId) window.open('https://drive.google.com/drive/folders/'+driveFolderId,'_blank'); else toast('⚠️ Not yet synced to Drive'); }
+
+function renderDriveCard(ok){
+  let c=document.getElementById('driveCard'); if(!c)return;
+  if(isLocalMode){ c.innerHTML='<div class="notice warn">⚠️ Running in local mode — data not synced to Drive. <strong>Sign out and sign in with Google</strong> to enable cloud sync.</div>'; return; }
+  c.innerHTML=`<div class="drive-card"><div class="drive-card-head"><div class="drive-card-ico">📁</div><div><div class="drive-card-title">Google Drive ${ok?'✅':'⚠️'}</div><div class="drive-card-sub">${S.lastUpdated?'Last saved: '+new Date(S.lastUpdated).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'Not yet saved'}</div></div></div><div class="drive-card-acts"><button class="btn btn-blue btn-sm" onclick="manualSync()">🔄 Sync Now</button><button class="btn btn-secondary btn-sm" onclick="openInDrive()">📁 View in Drive</button></div></div>`;
+  document.getElementById('driveStatus').textContent=S.lastUpdated?'Last saved: '+new Date(S.lastUpdated).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'Not yet saved';
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('nav-'+p).classList.add('active');
+  let fabActs={dashboard:openAddProp,properties:openAddProp,tenants:openAddTenant,finance:openAddRent,disputes:openAddDisp,reports:null};
+  let fab=document.getElementById('fab');
+  fab.style.display=p==='reports'?'none':'flex';
+  if(fabActs[p]) fab.onclick=fabActs[p];
+  let renders={dashboard:renderDash,properties:renderProps,tenants:renderTenants,finance:renderFin,disputes:renderDisps};
+  if(renders[p]) renders[p]();
+}
+function renderAll(){ renderDash();renderProps();renderTenants();renderFin();renderDisps();updBadge(); }
+
+// ── OVERLAYS ─────────────────────────────────────────────────
+function openSh(id){
+  if(id==='tenOv') popSel('tProp',S.props,p=>p.name);
+  if(id==='rentOv'){ popSel('rTen',S.tens.filter(t=>t.status!=='vacated'),t=>t.name+' — '+pn(t.propertyId)); document.getElementById('rDate').value=today(); document.getElementById('rMon').value=MONTHS[new Date().getMonth()]; document.getElementById('rYr').value=new Date().getFullYear(); }
+  if(id==='expOv'){ popSel('eProp',S.props,p=>p.name); document.getElementById('eDate').value=today(); }
+  if(id==='disOv') popSel('dProp',S.props,p=>p.name);
+  if(id==='profileOv'){ let u=currentUser||{}; let pp=document.getElementById('profPic'); if(u.picture)pp.innerHTML=`<img src="${u.picture}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`; else pp.textContent=u.init||'M'; document.getElementById('profName').textContent=u.name||''; document.getElementById('profEmail').textContent=u.email||'Local Mode'; renderDriveCard(true); }
+  if(id==='rptPropOv') popSel('rptPropSel',S.props,p=>p.name);
+  if(id==='rptReceiptOv') popSel('rptTenSel',S.tens,t=>t.name+' — '+pn(t.propertyId));
+  document.getElementById(id).classList.add('open');
+}
+function closeSh(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{ if(e.target===ov)closeSh(ov.id); }));
+
+// ── DOCUMENT LINKS ────────────────────────────────────────────
+function addPropDoc(){
+  let name=document.getElementById('pDname').value.trim(),link=document.getElementById('pDlink').value.trim(),type=document.getElementById('pDtype').value;
+  if(!name){toast('⚠️ Enter doc name');return;}
+  tmpPropDocs.push({id:uid(),docType:type,name,link,createdAt:new Date().toISOString()});
+  renderTmpDocs('pDocsList',tmpPropDocs,'prop');
+  document.getElementById('pDname').value=''; document.getElementById('pDlink').value='';
+}
+function addTenDoc(){
+  let name=document.getElementById('tDname').value.trim(),link=document.getElementById('tDlink').value.trim(),type=document.getElementById('tDtype').value;
+  if(!name){toast('⚠️ Enter doc name');return;}
+  tmpTenDocs.push({id:uid(),docType:type,name,link,createdAt:new Date().toISOString()});
+  renderTmpDocs('tDocsList',tmpTenDocs,'ten');
+  document.getElementById('tDname').value=''; document.getElementById('tDlink').value='';
+}
+function renderTmpDocs(listId,arr,ctx){
+  document.getElementById(listId).innerHTML=arr.map(d=>`<div class="att-item"><span>${dico(d.docType)}</span><div style="flex:1;min-width:0"><div class="att-name">${d.name}</div></div>${d.link?`<button class="btn btn-blue btn-sm" onclick="window.open('${d.link}','_blank')">Open</button>`:''}<button class="att-del" onclick="removeTmpDoc('${ctx}','${d.id}')">✕</button></div>`).join('');
+}
+function removeTmpDoc(ctx,id){ if(ctx==='prop')tmpPropDocs=tmpPropDocs.filter(d=>d.id!==id); else tmpTenDocs=tmpTenDocs.filter(d=>d.id!==id); renderTmpDocs(ctx==='prop'?'pDocsList':'tDocsList',ctx==='prop'?tmpPropDocs:tmpTenDocs,ctx); }
+
+// ── PROPERTIES ────────────────────────────────────────────────
+function openAddProp(){ document.getElementById('epId').value=''; document.getElementById('propTitle').textContent='🏘️ Add Property'; document.getElementById('pSaveBtn').textContent='✅ Save Property'; ['pName','pSurvey','pArea','pRent','pKhasra','pRem','pDname','pDlink'].forEach(id=>document.getElementById(id).value=''); document.getElementById('pAddr').value=''; document.getElementById('pType').value=''; document.getElementById('pOwn').value='self'; tmpPropDocs=[]; renderTmpDocs('pDocsList',tmpPropDocs,'prop'); openSh('propOv'); }
+function editProp(id){ let p=S.props.find(x=>x.id===id);if(!p)return; document.getElementById('epId').value=id; document.getElementById('propTitle').textContent='✏️ Edit Property'; document.getElementById('pSaveBtn').textContent='✅ Update'; document.getElementById('pName').value=p.name; document.getElementById('pType').value=p.type; document.getElementById('pSurvey').value=p.survey||''; document.getElementById('pAddr').value=p.address; document.getElementById('pArea').value=p.area||''; document.getElementById('pRent').value=p.expectedRent||''; document.getElementById('pKhasra').value=p.khasra||''; document.getElementById('pOwn').value=p.ownership||'self'; document.getElementById('pRem').value=p.remarks||''; tmpPropDocs=p.docs?[...p.docs]:[]; renderTmpDocs('pDocsList',tmpPropDocs,'prop'); closeSh('pdOv'); openSh('propOv'); }
+function saveProp(){ let eid=document.getElementById('epId').value,name=document.getElementById('pName').value.trim(),type=document.getElementById('pType').value,addr=document.getElementById('pAddr').value.trim(); if(!name||!type||!addr){toast('⚠️ Name, Type and Address required');return;} let f={name,type,address:addr,survey:document.getElementById('pSurvey').value,area:document.getElementById('pArea').value,expectedRent:document.getElementById('pRent').value,khasra:document.getElementById('pKhasra').value,ownership:document.getElementById('pOwn').value,remarks:document.getElementById('pRem').value,docs:[...tmpPropDocs]}; if(eid){let i=S.props.findIndex(p=>p.id===eid);if(i>-1)Object.assign(S.props[i],f,{updatedAt:new Date().toISOString()});}else S.props.push(Object.assign({id:uid(),createdAt:new Date().toISOString()},f)); closeSh('propOv');renderProps();renderDash();afterSave();toast('✅ Property saved!'); }
+function deleteProp(id){ if(!confirm('Delete this property?'))return; S.props=S.props.filter(p=>p.id!==id); closeSh('pdOv');renderProps();renderDash();afterSave();toast('Deleted'); }
+function setPF(el,t){ document.querySelectorAll('#propChips .chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');flt.prop=t;renderProps(); }
+function renderProps(typeOv,search){ if(typeOv!==undefined)flt.prop=typeOv||'all'; search=search||''; let arr=S.props; if(flt.prop!=='all')arr=arr.filter(p=>p.type===flt.prop); if(search)arr=arr.filter(p=>(p.name+p.address).toLowerCase().includes(search)); let c=document.getElementById('propList'); if(!arr.length){c.innerHTML='<div class="empty"><div class="empty-ico">🏘️</div><div class="empty-title">No Properties Yet</div><div class="empty-sub">Tap "+ Add New" to register your first property.</div></div>';return;} c.innerHTML=arr.map(p=>{ let tens=S.tens.filter(t=>t.propertyId===p.id&&t.status==='active'),coll=S.fins.filter(f=>f.type==='rent'&&f.propertyId===p.id).reduce((a,f)=>a+parseInt(f.amount||0),0); return `<div class="prop-card"><div class="prop-head"><span class="prop-emoji">${pico(p.type)}</span><div style="flex:1;min-width:0"><div class="prop-name">${p.name}</div><div class="prop-addr">📍 ${p.address}</div></div><div class="prop-badge">${p.type.toUpperCase()}</div></div><div class="prop-stats"><div class="pstat"><div class="pstat-val">${tens.length}</div><div class="pstat-lbl">Tenants</div></div><div class="pstat"><div class="pstat-val">${rp(p.expectedRent||0)}</div><div class="pstat-lbl">Expected</div></div><div class="pstat"><div class="pstat-val">${rp(coll)}</div><div class="pstat-lbl">Collected</div></div><div class="pstat"><div class="pstat-val">${p.docs&&p.docs.length||0}</div><div class="pstat-lbl">Docs</div></div></div><div class="prop-actions"><button class="btn btn-secondary" onclick="openPropDetail('${p.id}')">📄 Details</button><button class="btn btn-blue" onclick="editProp('${p.id}')">✏️ Edit</button><button class="btn btn-secondary" onclick="presetTen('${p.id}')">👤 Tenant</button><button class="btn btn-primary" onclick="openAddRent()">₹ Rent</button></div></div>`; }).join(''); }
+function openPropDetail(id){ let p=S.props.find(x=>x.id===id);if(!p)return; let tens=S.tens.filter(t=>t.propertyId===id),inc=S.fins.filter(f=>f.type==='rent'&&f.propertyId===id).reduce((a,f)=>a+parseInt(f.amount||0),0),exp=S.fins.filter(f=>f.type==='expense'&&f.propertyId===id).reduce((a,f)=>a+parseInt(f.amount||0),0); document.getElementById('pdTitle').textContent=pico(p.type)+' '+p.name; document.getElementById('pdBody').innerHTML=`<div class="info-tbl"><div class="info-row"><span class="info-key">Type</span><span class="info-val">${pico(p.type)} ${p.type}</span></div><div class="info-row"><span class="info-key">Address</span><span class="info-val" style="font-size:11px">${p.address}</span></div>${p.area?`<div class="info-row"><span class="info-key">Area</span><span class="info-val">${p.area}</span></div>`:''} ${p.khasra?`<div class="info-row"><span class="info-key">Khasra</span><span class="info-val">${p.khasra}</span></div>`:''}<div class="info-row"><span class="info-key">Expected</span><span class="info-val">${rp(p.expectedRent||0)}/mo</span></div><div class="info-row"><span class="info-key">Collected</span><span class="info-val" style="color:var(--green)">${rp(inc)}</span></div><div class="info-row"><span class="info-key">Expenses</span><span class="info-val" style="color:var(--red)">${rp(exp)}</span></div></div><div class="sec-head"><div class="sec-title">Tenants (${tens.length})</div></div>${tens.length?tens.map(t=>`<div class="ten-card" style="cursor:pointer" onclick="closeSh('pdOv');openTenDetail('${t.id}')"><div class="ten-avatar">${t.name[0].toUpperCase()}</div><div style="flex:1;min-width:0"><div class="ten-name">${t.name}</div><div class="ten-meta">${rp(t.rentAmount)}/mo · ${fd(t.moveIn)}</div></div><div class="status-pill ${t.status}">${t.status}</div></div>`).join(''):'<p style="font-size:12px;color:var(--grey-4);padding-bottom:8px">No tenants.</p>'}${p.docs&&p.docs.length?`<div class="sec-head"><div class="sec-title">Docs (${p.docs.length})</div></div>`+p.docs.map(d=>`<div class="att-item"><span>${dico(d.docType)}</span><div style="flex:1;min-width:0"><div class="att-name">${d.name}</div></div>${d.link?`<button class="btn btn-blue btn-sm" onclick="window.open('${d.link}','_blank')">Open ↗</button>`:''}</div>`).join(''):''}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-blue" style="flex:1" onclick="editProp('${p.id}')">✏️ Edit</button><button class="btn btn-secondary" style="flex:1" onclick="closeSh('pdOv');rptAllProps('pdf')">📄 PDF</button></div><button class="btn btn-red btn-full" style="margin-top:8px" onclick="deleteProp('${p.id}')">🗑 Delete</button>`; openSh('pdOv'); }
+function presetTen(pId){ openAddTenant(); setTimeout(()=>{ popSel('tProp',S.props,p=>p.name); document.getElementById('tProp').value=pId; },60); }
+
+// ── TENANTS ──────────────────────────────────────────────────
+function openAddTenant(){ document.getElementById('etId').value=''; document.getElementById('tenTitle').textContent='👤 Add Tenant'; document.getElementById('tSaveBtn').textContent='✅ Save Tenant'; ['tName','tPhone','tAadh','tRent','tDep','tAddr','tOcc','tEmerg','tDname','tDlink'].forEach(id=>document.getElementById(id).value=''); tmpTenDocs=[]; renderTmpDocs('tDocsList',tmpTenDocs,'ten'); openSh('tenOv'); }
+function editTen(id){ let t=S.tens.find(x=>x.id===id);if(!t)return; document.getElementById('etId').value=id; document.getElementById('tenTitle').textContent='✏️ Edit Tenant'; document.getElementById('tSaveBtn').textContent='✅ Update'; popSel('tProp',S.props,p=>p.name); document.getElementById('tName').value=t.name; document.getElementById('tPhone').value=t.phone; document.getElementById('tAadh').value=t.aadhaar||''; document.getElementById('tProp').value=t.propertyId; document.getElementById('tMovein').value=t.moveIn; document.getElementById('tRent').value=t.rentAmount; document.getElementById('tDep').value=t.deposit||''; document.getElementById('tDue').value=t.dueDate||'1'; document.getElementById('tAddr').value=t.permAddr||''; document.getElementById('tOcc').value=t.occupation||''; document.getElementById('tEmerg').value=t.emergency||''; tmpTenDocs=t.docs?[...t.docs]:[]; renderTmpDocs('tDocsList',tmpTenDocs,'ten'); closeSh('tdOv'); openSh('tenOv'); }
+function saveTen(){ let eid=document.getElementById('etId').value,name=document.getElementById('tName').value.trim(),phone=document.getElementById('tPhone').value.trim(),propId=document.getElementById('tProp').value,moveIn=document.getElementById('tMovein').value,rentAmount=document.getElementById('tRent').value; if(!name||!phone||!propId||!moveIn||!rentAmount){toast('⚠️ Fill all required fields');return;} let f={name,phone,propertyId:propId,moveIn,rentAmount,aadhaar:document.getElementById('tAadh').value,deposit:document.getElementById('tDep').value,dueDate:document.getElementById('tDue').value,permAddr:document.getElementById('tAddr').value,occupation:document.getElementById('tOcc').value,emergency:document.getElementById('tEmerg').value,docs:[...tmpTenDocs]}; if(eid){let i=S.tens.findIndex(t=>t.id===eid);if(i>-1)Object.assign(S.tens[i],f,{updatedAt:new Date().toISOString()});}else S.tens.push(Object.assign({id:uid(),status:'active',createdAt:new Date().toISOString()},f)); closeSh('tenOv');renderTenants();renderDash();afterSave();toast('✅ Tenant saved!'); }
+function vacateTen(id){ let t=S.tens.find(x=>x.id===id);if(!t)return;t.status='vacated';renderTenants();afterSave();toast('Marked as vacated'); }
+function deleteTen(id){ if(!confirm('Delete tenant?'))return;S.tens=S.tens.filter(t=>t.id!==id);closeSh('tdOv');renderTenants();afterSave();toast('Deleted'); }
+function setTF(el,f){ document.querySelectorAll('#page-tenants .tog-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');flt.ten=f;renderTenants(); }
+function renderTenants(search){ search=search||''; let arr=S.tens; if(flt.ten!=='all')arr=arr.filter(t=>t.status===flt.ten); if(search)arr=arr.filter(t=>(t.name+pn(t.propertyId)).toLowerCase().includes(search)); let c=document.getElementById('tenList'); if(!arr.length){c.innerHTML='<div class="empty"><div class="empty-ico">👥</div><div class="empty-title">No Tenants</div><div class="empty-sub">Add a tenant using "+ Add Tenant" above.</div></div>';return;} c.innerHTML=arr.map(t=>{ let paid=S.fins.filter(f=>f.tenantId===t.id&&f.type==='rent').reduce((a,f)=>a+parseInt(f.amount||0),0); return `<div class="ten-card"><div class="ten-avatar">${t.name[0].toUpperCase()}</div><div style="flex:1;min-width:0"><div class="ten-name">${t.name}</div><div class="ten-meta">📍 ${pn(t.propertyId)} · 📱 ${t.phone}<br>${rp(t.rentAmount)}/mo · Paid: ${rp(paid)}</div><div class="ten-acts"><button class="btn btn-blue btn-sm" onclick="editTen('${t.id}')">✏️ Edit</button><button class="btn btn-green btn-sm" onclick="openAddRent()">₹ Rent</button><button class="btn btn-secondary btn-sm" onclick="openTenDetail('${t.id}')">📄 View</button>${t.status==='active'?`<button class="btn btn-red btn-sm" onclick="vacateTen('${t.id}')">🚪 Vacate</button>`:''}</div></div><div class="status-pill ${t.status}">${t.status}</div></div>`; }).join(''); }
+function openTenDetail(id){ let t=S.tens.find(x=>x.id===id);if(!t)return; let rents=S.fins.filter(f=>f.tenantId===id&&f.type==='rent'),paid=rents.reduce((a,f)=>a+parseInt(f.amount||0),0); document.getElementById('tdTitle').textContent='👤 '+t.name; document.getElementById('tdBody').innerHTML=`<div class="info-tbl"><div class="info-row"><span class="info-key">Property</span><span class="info-val">${pn(t.propertyId)}</span></div><div class="info-row"><span class="info-key">Mobile</span><span class="info-val"><a href="tel:${t.phone}">${t.phone}</a></span></div>${t.aadhaar?`<div class="info-row"><span class="info-key">Aadhaar</span><span class="info-val">${t.aadhaar}</span></div>`:''}<div class="info-row"><span class="info-key">Move-In</span><span class="info-val">${fd(t.moveIn)}</span></div><div class="info-row"><span class="info-key">Rent/Month</span><span class="info-val">${rp(t.rentAmount)}</span></div>${t.deposit?`<div class="info-row"><span class="info-key">Deposit</span><span class="info-val">${rp(t.deposit)}</span></div>`:''}<div class="info-row"><span class="info-key">Total Paid</span><span class="info-val" style="color:var(--green)">${rp(paid)}</span></div></div><div class="sec-head"><div class="sec-title">Rent History (${rents.length})</div></div>${rents.length?rents.map(r=>`<div class="fin-rec"><div class="fin-dot in"></div><div style="flex:1"><div class="fin-rec-title">${r.month} ${r.year}</div><div class="fin-rec-sub">${fd(r.date)} · ${r.mode||''}${r.ref?' · '+r.ref:''}</div></div><div class="fin-amt in">${rp(r.amount)}</div></div>`).join(''):'<p style="font-size:12px;color:var(--grey-4);padding-bottom:8px">No payments yet.</p>'}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-blue" style="flex:1" onclick="editTen('${t.id}')">✏️ Edit</button><button class="btn btn-green" style="flex:1" onclick="closeSh('tdOv');openAddRent()">₹ Rent</button></div><button class="btn btn-red btn-full" style="margin-top:8px" onclick="deleteTen('${t.id}')">🗑 Delete</button>`; openSh('tdOv'); }
+
+// ── FINANCE ──────────────────────────────────────────────────
+function openAddRent(){ document.getElementById('erId').value=''; document.getElementById('rentTitle').textContent='💰 Record Rent'; document.getElementById('rSaveBtn').textContent='✅ Save'; ['rAmt','rRef','rDlink'].forEach(id=>document.getElementById(id).value=''); openSh('rentOv'); }
+function openAddExp(){ document.getElementById('eeId').value=''; document.getElementById('expTitle').textContent='🔧 Add Expense'; document.getElementById('eSaveBtn').textContent='✅ Save'; ['eAmt','eDesc','eVend','eBill','eDlink'].forEach(id=>document.getElementById(id).value=''); openSh('expOv'); }
+function editRent(id){ let r=S.fins.find(x=>x.id===id);if(!r)return; document.getElementById('erId').value=id; document.getElementById('rentTitle').textContent='✏️ Edit Rent'; document.getElementById('rSaveBtn').textContent='✅ Update'; popSel('rTen',S.tens.filter(t=>t.status!=='vacated'),t=>t.name+' — '+pn(t.propertyId)); document.getElementById('rTen').value=r.tenantId; document.getElementById('rAmt').value=r.amount; document.getElementById('rDate').value=r.date; document.getElementById('rMon').value=r.month; document.getElementById('rYr').value=r.year; document.getElementById('rMode').value=r.mode||'cash'; document.getElementById('rRef').value=r.ref||''; document.getElementById('rDlink').value=r.docLink||''; openSh('rentOv'); }
+function editExp(id){ let r=S.fins.find(x=>x.id===id);if(!r)return; document.getElementById('eeId').value=id; document.getElementById('expTitle').textContent='✏️ Edit Expense'; document.getElementById('eSaveBtn').textContent='✅ Update'; popSel('eProp',S.props,p=>p.name); document.getElementById('eProp').value=r.propertyId||''; document.getElementById('eType').value=r.expType||'repair'; document.getElementById('eAmt').value=r.amount; document.getElementById('eDate').value=r.date; document.getElementById('eDesc').value=r.desc||''; document.getElementById('eVend').value=r.vendor||''; document.getElementById('eBill').value=r.bill||''; document.getElementById('eDlink').value=r.docLink||''; openSh('expOv'); }
+function saveRent(){ let eid=document.getElementById('erId').value,tenId=document.getElementById('rTen').value,amt=document.getElementById('rAmt').value,date=document.getElementById('rDate').value; if(!tenId||!amt||!date){toast('⚠️ Tenant, Amount and Date required');return;} let t=S.tens.find(x=>x.id===tenId),f={tenantId:tenId,propertyId:t?t.propertyId:'',amount:amt,date,month:document.getElementById('rMon').value,year:document.getElementById('rYr').value,mode:document.getElementById('rMode').value,ref:document.getElementById('rRef').value,docLink:document.getElementById('rDlink').value}; if(eid){let i=S.fins.findIndex(x=>x.id===eid);if(i>-1)Object.assign(S.fins[i],f,{updatedAt:new Date().toISOString()});}else S.fins.push(Object.assign({id:uid(),type:'rent',createdAt:new Date().toISOString()},f)); closeSh('rentOv');renderFin();renderDash();afterSave();toast('✅ Rent '+rp(amt)+' saved!'); }
+function saveExp(){ let eid=document.getElementById('eeId').value,amt=document.getElementById('eAmt').value,date=document.getElementById('eDate').value,desc=document.getElementById('eDesc').value.trim(); if(!amt||!date||!desc){toast('⚠️ Amount, Date and Description required');return;} let propId=document.getElementById('eProp').value,d=new Date(date); let f={propertyId:propId,expType:document.getElementById('eType').value,amount:amt,date,desc,vendor:document.getElementById('eVend').value,bill:document.getElementById('eBill').value,docLink:document.getElementById('eDlink').value,month:d.toLocaleString('en-IN',{month:'long'}),year:d.getFullYear()}; if(eid){let i=S.fins.findIndex(x=>x.id===eid);if(i>-1)Object.assign(S.fins[i],f,{updatedAt:new Date().toISOString()});}else S.fins.push(Object.assign({id:uid(),type:'expense',createdAt:new Date().toISOString()},f)); closeSh('expOv');renderFin();renderDash();afterSave();toast('✅ Expense '+rp(amt)+' saved!'); }
+function setFF(el,f){ document.querySelectorAll('#page-finance .tog-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');flt.fin=f;renderFin(); }
+function renderFin(){ let tabs=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; document.getElementById('monthTabs').innerHTML=tabs.map((m,i)=>`<div class="mon-tab${i===curMon?' active':''}" onclick="curMon=${i};renderFin()">${m}</div>`).join(''); let cm=CM(),recs=S.fins.filter(f=>f.month===cm&&parseInt(f.year)===curYr); if(flt.fin==='rent')recs=recs.filter(f=>f.type==='rent'); else if(flt.fin==='expense')recs=recs.filter(f=>f.type==='expense'); let inc=recs.filter(f=>f.type==='rent').reduce((a,f)=>a+parseInt(f.amount||0),0),exp=recs.filter(f=>f.type==='expense').reduce((a,f)=>a+parseInt(f.amount||0),0); document.getElementById('fIn').textContent=rp(inc); document.getElementById('fOut').textContent=rp(exp); document.getElementById('fNet').textContent=rp(inc-exp); let c=document.getElementById('finList'); if(!recs.length){c.innerHTML=`<div class="empty"><div class="empty-ico">💰</div><div class="empty-title">No Records for ${cm}</div></div>`;return;} c.innerHTML=recs.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(r=>{ let isR=r.type==='rent'; return `<div class="fin-rec"><div class="fin-dot ${isR?'in':'out'}"></div><div style="flex:1;min-width:0"><div class="fin-rec-title">${isR?'💰 '+tn(r.tenantId):eico(r.expType)+' '+r.desc}</div><div class="fin-rec-sub">${isR?r.month+' '+r.year+' · '+(r.mode||''):fd(r.date)+' · '+pn(r.propertyId)}</div></div><div style="text-align:right;flex-shrink:0"><div class="fin-amt ${isR?'in':'out'}">${isR?'+':'-'}${rp(r.amount)}</div><button class="btn btn-blue btn-sm" style="margin-top:3px" onclick="${isR?'editRent':'editExp'}('${r.id}')">Edit</button></div></div>`; }).join(''); }
+
+// ── DISPUTES ─────────────────────────────────────────────────
+function openAddDisp(){ document.getElementById('edId').value=''; document.getElementById('disTitle').textContent='⚖️ Add Dispute'; document.getElementById('dSaveBtn').textContent='✅ Save Case'; ['dTitle','dCaseno','dCourt','dOpp','dLawyer','dDesc'].forEach(id=>document.getElementById(id).value=''); document.getElementById('dFiled').value=''; document.getElementById('dNext').value=''; openSh('disOv'); }
+function editDisp(id){ let d=S.disps.find(x=>x.id===id);if(!d)return; document.getElementById('edId').value=id; document.getElementById('disTitle').textContent='✏️ Edit Case'; document.getElementById('dSaveBtn').textContent='✅ Update'; popSel('dProp',S.props,p=>p.name); document.getElementById('dType').value=d.type; document.getElementById('dStatus').value=d.status; document.getElementById('dTitle').value=d.title; document.getElementById('dProp').value=d.propertyId||''; document.getElementById('dCaseno').value=d.caseNo||''; document.getElementById('dCourt').value=d.court||''; document.getElementById('dOpp').value=d.opponent||''; document.getElementById('dFiled').value=d.filingDate||''; document.getElementById('dNext').value=d.nextHearing||''; document.getElementById('dLawyer').value=d.lawyer||''; document.getElementById('dDesc').value=d.desc||''; openSh('disOv'); }
+function saveDisp(){ let eid=document.getElementById('edId').value,title=document.getElementById('dTitle').value.trim(),type=document.getElementById('dType').value; if(!title||!type){toast('⚠️ Case title required');return;} let f={title,type,status:document.getElementById('dStatus').value,propertyId:document.getElementById('dProp').value,caseNo:document.getElementById('dCaseno').value,court:document.getElementById('dCourt').value,opponent:document.getElementById('dOpp').value,filingDate:document.getElementById('dFiled').value,nextHearing:document.getElementById('dNext').value,lawyer:document.getElementById('dLawyer').value,desc:document.getElementById('dDesc').value}; if(eid){let i=S.disps.findIndex(x=>x.id===eid);if(i>-1)Object.assign(S.disps[i],f,{updatedAt:new Date().toISOString()});}else S.disps.push(Object.assign({id:uid(),createdAt:new Date().toISOString()},f)); closeSh('disOv');renderDisps();renderDash();updBadge();afterSave();toast('✅ Case saved!'); }
+function setDisF(el,f){ document.querySelectorAll('#page-disputes .tog-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');flt.dis=f;renderDisps(); }
+function cycleStatus(id){ let d=S.disps.find(x=>x.id===id);if(!d)return;let sl=['open','hearing','closed'];d.status=sl[(sl.indexOf(d.status)+1)%3];renderDisps();updBadge();afterSave();toast('Status: '+d.status.toUpperCase()); }
+function renderDisps(){ let arr=S.disps; if(flt.dis!=='all')arr=arr.filter(d=>d.status===flt.dis); let c=document.getElementById('disList'); if(!arr.length){c.innerHTML='<div class="empty"><div class="empty-ico">⚖️</div><div class="empty-title">No Cases</div></div>';return;} c.innerHTML=arr.map(d=>`<div class="dis-card"><div class="dis-head"><div class="dis-type ${d.type}">${d.type.toUpperCase()}</div><div class="dis-title">${d.title}</div><div class="dis-status ${d.status}">${d.status.toUpperCase()}</div></div><div class="dis-body">${pn(d.propertyId)&&pn(d.propertyId)!=='—'?pn(d.propertyId)+' · ':''}${d.caseNo?'Case: '+d.caseNo+' · ':''}${d.court||''}<br>${d.opponent?'👤 '+d.opponent+'<br>':''}${d.desc?d.desc.slice(0,80)+'...':''}</div><div class="dis-foot"><span style="font-size:11px">Next: <strong style="color:var(--saffron)">${d.nextHearing?fd(d.nextHearing):'Not set'}</strong></span><div style="display:flex;gap:6px"><button class="btn btn-blue btn-sm" onclick="editDisp('${d.id}')">✏️</button><button class="btn btn-secondary btn-sm" onclick="cycleStatus('${d.id}')">🔄 Status</button></div></div></div>`).join(''); }
+function updBadge(){ let n=S.disps.filter(d=>d.status!=='closed').length,b=document.getElementById('disBadge'); b.textContent=n; b.style.display=n?'flex':'none'; }
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+function renderDash(){ document.getElementById('sProps').textContent=S.props.length; let cm=CM(),cy=new Date().getFullYear(),mr=S.fins.filter(f=>f.type==='rent'&&f.month===cm&&parseInt(f.year)===cy).reduce((a,f)=>a+parseInt(f.amount||0),0),expR=S.tens.filter(t=>t.status==='active').reduce((a,t)=>a+parseInt(t.rentAmount||0),0); document.getElementById('sRent').textContent=rp(mr); document.getElementById('sPend').textContent=rp(Math.max(0,expR-mr)); document.getElementById('sCases').textContent=S.disps.filter(d=>d.status!=='closed').length; renderDriveCard(!!S.lastUpdated); let recent=[...S.fins,...S.disps.map(d=>({...d,_d:true}))].sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0)).slice(0,6); let ac=document.getElementById('dashActivity'); if(!recent.length){ac.innerHTML='<div class="empty" style="padding:24px 0"><div class="empty-ico">📋</div><div class="empty-sub">Add a property to get started!</div></div>';return;} ac.innerHTML=recent.map(r=>{ if(r._d)return `<div class="act-item"><div class="act-ico dispute">⚖️</div><div style="flex:1;min-width:0"><div class="act-title">${r.title}</div><div class="act-sub">Dispute · ${r.status}</div></div><div class="act-amt" style="color:var(--purple)">CASE</div></div>`; let isR=r.type==='rent'; return `<div class="act-item"><div class="act-ico ${isR?'rent':'expense'}">${isR?'💰':eico(r.expType)}</div><div style="flex:1;min-width:0"><div class="act-title">${isR?tn(r.tenantId):r.desc}</div><div class="act-sub">${isR?r.month+' '+r.year:r.expType+' · '+pn(r.propertyId)}</div></div><div class="act-amt" style="color:${isR?'var(--green)':'var(--red)'}">${isR?'+':'-'}${rp(r.amount)}</div></div>`; }).join(''); }
+
+// ── REPORTS — EXCEL (SheetJS) & PDF ──────────────────────────
+function xlsxDl(wb,filename){ XLSX.writeFile(wb,filename); toast('✅ Downloaded: '+filename); }
+
+function makeXLSXSheet(headers,rows){ let ws=XLSX.utils.aoa_to_sheet([headers,...rows]); let range=XLSX.utils.decode_range(ws['!ref']||'A1'); for(let C=range.s.c;C<=range.e.c;C++){ let cell=ws[XLSX.utils.encode_cell({r:0,c:C})]; if(cell){cell.s={font:{bold:true},fill:{fgColor:{rgb:'0A1628'}},};} } ws['!cols']=headers.map(()=>({wpx:100})); return ws; }
+
+function rptAllProps(fmt){
+  if(!S.props.length){toast('⚠️ No properties');return;}
+  let headers=['Property Name','Type','Address','Area','Khasra No.','Survey No.','Expected Rent','Ownership','Active Tenants','Total Collected','Total Expenses','Remarks'];
+  let rows=S.props.map(p=>{ let tens=S.tens.filter(t=>t.propertyId===p.id&&t.status==='active').length,coll=S.fins.filter(f=>f.type==='rent'&&f.propertyId===p.id).reduce((a,f)=>a+parseInt(f.amount||0),0),exp=S.fins.filter(f=>f.type==='expense'&&f.propertyId===p.id).reduce((a,f)=>a+parseInt(f.amount||0),0); return [p.name,p.type,p.address,p.area||'',p.khasra||'',p.survey||'',parseInt(p.expectedRent||0),p.ownership||'self',tens,coll,exp,p.remarks||'']; });
+  if(fmt==='excel'){ let wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,makeXLSXSheet(headers,rows),'Properties'); xlsxDl(wb,'Properties_ZameenMaalik.xlsx'); }
+  else{ printReport('<h1>🏘️ All Properties</h1><table><tr>'+headers.map(h=>`<th>${h}</th>`).join('')+'</tr>'+rows.map(r=>`<tr>${r.map((v,i)=>i===6||i===9||i===10?`<td>₹${parseInt(v).toLocaleString('en-IN')}</td>`:`<td>${v}</td>`).join('')}</tr>`).join('')+'</table>','All Properties'); }
+}
+
+function rptSingleProp(fmt){ let id=document.getElementById('rptPropSel').value;if(!id){toast('⚠️ Select a property');return;} let p=S.props.find(x=>x.id===id);if(!p)return; closeSh('rptPropOv');
+  let tens=S.tens.filter(t=>t.propertyId===id),rents=S.fins.filter(f=>f.type==='rent'&&f.propertyId===id),exps=S.fins.filter(f=>f.type==='expense'&&f.propertyId===id);
+  if(fmt==='excel'){
+    let wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,makeXLSXSheet(['Field','Value'],[['Name',p.name],['Type',p.type],['Address',p.address],['Area',p.area||''],['Khasra',p.khasra||''],['Survey',p.survey||''],['Expected Rent',parseInt(p.expectedRent||0)],['Ownership',p.ownership||''],['Total Collected',rents.reduce((a,f)=>a+parseInt(f.amount||0),0)],['Total Expenses',exps.reduce((a,f)=>a+parseInt(f.amount||0),0)],['Remarks',p.remarks||'']]),'Property Info');
+    XLSX.utils.book_append_sheet(wb,makeXLSXSheet(['Name','Phone','Aadhaar','Move-In','Rent/Month','Deposit','Status'],tens.map(t=>[t.name,t.phone,t.aadhaar||'',t.moveIn,parseInt(t.rentAmount),parseInt(t.deposit||0),t.status])),'Tenants');
+    XLSX.utils.book_append_sheet(wb,makeXLSXSheet(['Tenant','Month','Year','Date','Amount','Mode','Reference'],rents.map(r=>[tn(r.tenantId),r.month,r.year,r.date,parseInt(r.amount),r.mode||'',r.ref||'']).sort((a,b)=>new Date(b[3])-new Date(a[3]))),'Rent Payments');
+    XLSX.utils.book_append_sheet(wb,makeXLSXSheet(['Type','Date','Amount','Description','Vendor','Bill No.'],exps.map(e=>[e.expType,e.date,parseInt(e.amount),e.desc,e.vendor||'',e.bill||'']).sort((a,b)=>new Date(b[1])-new Date(a[1]))),'Expenses');
+    xlsxDl(wb,p.name.replace(/\s+/g,'_')+'_Report_ZameenMaalik.xlsx');
+  } else { printReport(`<h1>${pico(p.type)} ${p.name}</h1><table><tr><th>Field</th><th>Value</th></tr><tr><td>Address</td><td>${p.address}</td></tr><tr><td>Area</td><td>${p.area||'—'}</td></tr>${p.khasra?`<tr><td>Khasra</td><td>${p.khasra}</td></tr>`:''}<tr><td>Expected Rent</td><td>${rp(p.expectedRent||0)}/mo</td></tr><tr><td>Collected</td><td style="color:green">₹${rents.reduce((a,f)=>a+parseInt(f.amount||0),0).toLocaleString('en-IN')}</td></tr><tr><td>Expenses</td><td style="color:red">₹${exps.reduce((a,f)=>a+parseInt(f.amount||0),0).toLocaleString('en-IN')}</td></tr></table><h2>Tenants</h2>${tens.length?`<table><tr><th>Name</th><th>Phone</th><th>Move-In</th><th>Rent</th><th>Status</th></tr>${tens.map(t=>`<tr><td>${t.name}</td><td>${t.phone}</td><td>${fd(t.moveIn)}</td><td>${rp(t.rentAmount)}/mo</td><td>${t.status}</td></tr>`).join('')}</table>`:'<p>No tenants.</p>'}<h2>Rent Payments</h2>${rents.length?`<table><tr><th>Tenant</th><th>Month</th><th>Date</th><th>Amount</th><th>Mode</th></tr>${rents.map(r=>`<tr><td>${tn(r.tenantId)}</td><td>${r.month} ${r.year}</td><td>${fd(r.date)}</td><td style="color:green">₹${parseInt(r.amount).toLocaleString('en-IN')}</td><td>${r.mode||''}</td></tr>`).join('')}</table>`:'<p>No payments.</p>'}`,p.name+' Report'); }
+}
+
+function rptAllTenants(fmt){
+  if(!S.tens.length){toast('⚠️ No tenants');return;}
+  let headers=['Name','Phone','Aadhaar','Property','Move-In Date','Rent/Month','Security Deposit','Due Date','Occupation','Emergency Contact','Status'];
+  let rows=S.tens.map(t=>[t.name,t.phone,t.aadhaar||'',pn(t.propertyId),t.moveIn,parseInt(t.rentAmount),parseInt(t.deposit||0),'Day '+t.dueDate,t.occupation||'',t.emergency||'',t.status]);
+  let wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,makeXLSXSheet(headers,rows),'Tenants'); xlsxDl(wb,'Tenants_ZameenMaalik.xlsx');
+}
+
+function loadReceiptPayments(tenId){ let sel=document.getElementById('rptPaySel');sel.innerHTML='<option value="">Select Payment</option>';if(!tenId)return; S.fins.filter(f=>f.tenantId===tenId&&f.type==='rent').forEach(r=>{let o=document.createElement('option');o.value=r.id;o.textContent=r.month+' '+r.year+' — '+rp(r.amount);sel.appendChild(o);}); }
+function rptReceipt(){ let tenId=document.getElementById('rptTenSel').value,payId=document.getElementById('rptPaySel').value; if(!tenId||!payId){toast('⚠️ Select tenant and payment');return;} let t=S.tens.find(x=>x.id===tenId),r=S.fins.find(x=>x.id===payId);if(!t||!r)return; let p=gp(t.propertyId); closeSh('rptReceiptOv'); printReport(`<div style="border:2px solid #FF6B00;border-radius:12px;padding:24px;max-width:500px;margin:0 auto"><div style="text-align:center;margin-bottom:20px"><h1 style="color:#FF6B00;font-size:24px">🧾 RENT RECEIPT</h1></div><table><tr><th colspan="2" style="background:#0A1628;color:white;text-align:center">Payment Details</th></tr><tr><td>Receipt Month</td><td><strong>${r.month} ${r.year}</strong></td></tr><tr><td>Tenant Name</td><td>${t.name}</td></tr><tr><td>Mobile</td><td>${t.phone}</td></tr>${t.aadhaar?`<tr><td>Aadhaar</td><td>${t.aadhaar}</td></tr>`:''}<tr><td>Property</td><td>${p.name||'—'}</td></tr><tr><td>Property Address</td><td>${p.address||'—'}</td></tr><tr><td>Payment Date</td><td>${fd(r.date)}</td></tr><tr><td>Payment Mode</td><td>${r.mode||''}${r.ref?' — '+r.ref:''}</td></tr><tr><td style="font-size:16px"><strong>Amount Paid</strong></td><td style="font-size:20px;color:#FF6B00"><strong>${rp(r.amount)}</strong></td></tr></table><p style="text-align:center;color:#64748B;font-size:12px;margin-top:20px">This is a computer-generated receipt. No signature required.</p></div>`,'Rent Receipt'); }
+
+function rptMonthly(fmt){ let cm=CM(),cy=curYr,recs=S.fins.filter(f=>f.month===cm&&parseInt(f.year)===cy); let inc=recs.filter(f=>f.type==='rent').reduce((a,f)=>a+parseInt(f.amount||0),0),exp=recs.filter(f=>f.type==='expense').reduce((a,f)=>a+parseInt(f.amount||0),0);
+  if(fmt==='excel'){ let headers=['Type','Description / Tenant','Property','Date','Amount','Mode / Expense Type']; let rows=recs.map(r=>{ let isR=r.type==='rent'; return [isR?'Income — Rent':'Expense',isR?tn(r.tenantId):r.desc,pn(r.propertyId),r.date,parseInt(r.amount),isR?(r.mode||''):r.expType]; }); rows.push(['','','','TOTAL INCOME',inc,'']); rows.push(['','','','TOTAL EXPENSE',exp,'']); rows.push(['','','','NET BALANCE',inc-exp,'']); let wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,makeXLSXSheet(headers,rows),cm+' '+cy); xlsxDl(wb,'Finance_'+cm+'_'+cy+'_ZameenMaalik.xlsx'); }
+  else{ printReport(`<h1>📊 Monthly Finance — ${cm} ${cy}</h1><table><tr><th>Summary</th><th></th></tr><tr><td>Total Income</td><td style="color:green"><strong>${rp(inc)}</strong></td></tr><tr><td>Total Expenses</td><td style="color:red"><strong>${rp(exp)}</strong></td></tr><tr><td>Net Balance</td><td style="color:#FF6B00"><strong>${rp(inc-exp)}</strong></td></tr></table><h2>All Transactions</h2>${recs.length?`<table><tr><th>Type</th><th>Description</th><th>Date</th><th>Property</th><th>Amount</th></tr>${recs.map(r=>{ let isR=r.type==='rent'; return `<tr><td>${isR?'Rent':'Expense'}</td><td>${isR?tn(r.tenantId):r.desc}</td><td>${fd(r.date)}</td><td>${pn(r.propertyId)}</td><td style="color:${isR?'green':'red'}">${isR?'+':'-'}${rp(r.amount)}</td></tr>`; }).join('')}</table>`:'<p>No transactions this month.</p>'}`, 'Finance '+cm+' '+cy); }
+}
+
+function rptFullFinance(){ let headers=['ID','Type','Date','Month','Year','Property','Tenant','Amount (₹)','Mode','Reference','Description','Vendor','Bill No.']; let rows=S.fins.map(f=>[f.id,f.type,f.date,f.month||'',f.year||'',pn(f.propertyId),tn(f.tenantId),parseInt(f.amount||0),f.mode||'',f.ref||'',f.desc||'',f.vendor||'',f.bill||'']); let wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,makeXLSXSheet(headers,rows),'All Finance'); xlsxDl(wb,'FullFinance_ZameenMaalik.xlsx'); }
+
+function rptDisputes(fmt){ if(!S.disps.length){toast('⚠️ No disputes');return;} let headers=['Title','Type','Status','Property','Case No.','Court','Opposite Party','Filing Date','Next Hearing','Lawyer','Description']; let rows=S.disps.map(d=>[d.title,d.type,d.status,pn(d.propertyId),d.caseNo||'',d.court||'',d.opponent||'',d.filingDate||'',d.nextHearing||'',d.lawyer||'',d.desc||'']); let wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,makeXLSXSheet(headers,rows),'Disputes'); xlsxDl(wb,'Disputes_ZameenMaalik.xlsx'); }
+
+function rptFullBackupExcel(){
+  let wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,makeXLSXSheet(['Name','Type','Address','Area','Khasra','Survey','Expected Rent','Ownership','Remarks'],S.props.map(p=>[p.name,p.type,p.address,p.area||'',p.khasra||'',p.survey||'',parseInt(p.expectedRent||0),p.ownership||'',p.remarks||'']).concat(S.props.length?[]:[[],[],[],[],[],[],[],[],'No data'])),'Properties');
+  XLSX.utils.book_append_sheet(wb,makeXLSXSheet(['Name','Phone','Aadhaar','Property','Move-In','Rent/Month','Deposit','Status'],S.tens.map(t=>[t.name,t.phone,t.aadhaar||'',pn(t.propertyId),t.moveIn,parseInt(t.rentAmount),parseInt(t.deposit||0),t.status])),'Tenants');
+  XLSX.utils.book_append_sheet(wb,makeXLSXSheet(['Type','Date','Month','Year','Property','Tenant','Amount','Mode','Reference','Description'],S.fins.map(f=>[f.type,f.date,f.month||'',f.year||'',pn(f.propertyId),tn(f.tenantId),parseInt(f.amount||0),f.mode||'',f.ref||'',f.desc||''])),'Finance');
+  XLSX.utils.book_append_sheet(wb,makeXLSXSheet(['Title','Type','Status','Property','Case No.','Court','Opponent','Filing Date','Next Hearing','Lawyer'],S.disps.map(d=>[d.title,d.type,d.status,pn(d.propertyId),d.caseNo||'',d.court||'',d.opponent||'',d.filingDate||'',d.nextHearing||'',d.lawyer||''])),'Disputes');
+  xlsxDl(wb,'ZameenMaalik_FullExport_'+new Date().toISOString().split('T')[0]+'.xlsx');
+}
+
+function rptJsonBackup(){ let blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}); let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ZameenMaalik_Backup_'+new Date().toISOString().split('T')[0]+'.json';a.click(); toast('✅ JSON backup downloaded!'); }
+
+function printReport(html,title){ let w=window.open('','_blank'); var ts=new Date().toLocaleString('en-IN'); w.document.write('<!DOCTYPE html><html><head><title>'+title+' — Zameen Maalik</title><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;padding:24px;color:#0A1628;max-width:850px;margin:0 auto}h1{color:#FF6B00;border-bottom:3px solid #FF6B00;padding-bottom:8px;margin-bottom:16px}h2{color:#0A1628;margin-top:24px;font-size:15px;border-bottom:1px solid #E2E8F0;padding-bottom:5px}table{width:100%;border-collapse:collapse;margin:12px 0;font-size:12px}th{background:#0A1628;color:white;padding:8px 10px;text-align:left}td{padding:7px 10px;border-bottom:1px solid #E2E8F0}.footer{margin-top:32px;font-size:11px;color:#94A3B8;border-top:1px solid #E2E8F0;padding-top:12px;text-align:center}@media print{button{display:none}}<'+'/style><'+'/head><body>'+html+'<div class="footer">Generated by Zameen Maalik · '+ts+' · zameen-maalik.netlify.app<'+'/div><'+'script>setTimeout(function(){window.print();},400);<\/script><'+'/body><'+'/html>'); w.document.close(); }
+
+// ── INIT ─────────────────────────────────────────────────────
+initGoogleAuth();
+
+// ════════════════════════════════════════════════
+// V8 NEW FEATURES
+// ════════════════════════════════════════════════
+
+// ── PENDING RENT DETAILS ─────────────────────────
+function openSh_pending(){
+  let cm=CM(), cy=new Date().getFullYear();
+  let pendingList = S.tens.filter(t=>t.status==='active').map(t=>{
+    let paid = S.fins.filter(f=>f.tenantId===t.id&&f.type==='rent'&&f.month===cm&&parseInt(f.year)===cy).reduce((a,f)=>a+parseInt(f.amount||0),0);
+    let due = parseInt(t.rentAmount||0);
+    let pending = due - paid;
+    return {tenant:t, paid, due, pending};
+  }).filter(x=>x.pending>0);
+
+  let html = '';
+  if(!pendingList.length){
+    html = '<div class="empty"><div class="empty-ico">✅</div><div class="empty-title">All Clear!</div><div class="empty-sub">No pending rent for '+cm+'. All tenants have paid.</div></div>';
+  } else {
+    html = '<div class="notice warn" style="margin-bottom:12px">📅 Showing pending for <strong>'+cm+' '+cy+'</strong></div>';
+    pendingList.forEach(x=>{
+      let t=x.tenant;
+      html += '<div style="background:white;border-radius:12px;padding:13px;box-shadow:var(--shadow-sm);margin-bottom:10px;border-left:4px solid var(--red)">';
+      html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">';
+      html += '<div class="ten-avatar">'+t.name[0].toUpperCase()+'</div>';
+      html += '<div style="flex:1"><div style="font-size:14px;font-weight:700">'+t.name+'</div>';
+      html += '<div style="font-size:11px;color:var(--grey-4)">📍 '+pn(t.propertyId)+' · 📱 '+t.phone+'</div></div>';
+      html += '<div style="text-align:right"><div style="font-family:Baloo 2,cursive;font-size:18px;font-weight:800;color:var(--red)">'+rp(x.pending)+'</div><div style="font-size:10px;color:var(--grey-4)">pending</div></div></div>';
+      html += '<div style="display:flex;gap:8px;font-size:11px;color:var(--grey-4)">';
+      html += '<span>Due: <strong>'+rp(x.due)+'</strong></span><span>Paid: <strong style="color:var(--green)">'+rp(x.paid)+'</strong></span>';
+      html += '<span>Due on: <strong>'+t.dueDate+'th</strong></span></div>';
+      html += '<div style="display:flex;gap:6px;margin-top:10px">';
+      html += '<a href="tel:'+t.phone+'" class="btn btn-blue btn-sm">📞 Call</a>';
+      html += '<a href="https://wa.me/91'+t.phone.replace(/\D/g,'')+'" target="_blank" class="btn btn-green btn-sm">💬 WhatsApp</a>';
+      html += '<button class="btn btn-primary btn-sm" onclick="closeSh(&apos;pendingOv&apos;);openAddRent()">₹ Record Payment</button>';
+      html += '<button class="btn btn-sm" style="background:var(--navy);color:white" onclick="closeSh(&apos;pendingOv&apos;);showPage(&apos;page-tenants&apos;);setTimeout(()=>openTenDetail(&apos;'+t.id+'&apos;),200)">👤 View</button>';
+      html += '</div></div>';
+    });
+    let totalPending = pendingList.reduce((a,x)=>a+x.pending,0);
+    html += '<div style="background:var(--navy);border-radius:10px;padding:12px 14px;color:white;display:flex;justify-content:space-between;align-items:center">';
+    html += '<span style="font-size:12px;opacity:.7">Total Pending ('+pendingList.length+' tenants)</span>';
+    html += '<span style="font-family:Baloo 2,cursive;font-size:20px;font-weight:800;color:var(--gold)">'+rp(totalPending)+'</span></div>';
+  }
+  document.getElementById('pendingBody').innerHTML = html;
+  document.getElementById('pendingOv').classList.add('open');
+}
+
+// ── UPCOMING DATES (Dashboard) ────────────────────
+function renderUpcomingDates(){
+  let today = new Date(); today.setHours(0,0,0,0);
+  let soon = new Date(today); soon.setDate(soon.getDate()+30);
+  let items = [];
+
+  // Legal case hearings
+  S.disps.filter(d=>d.nextHearing&&d.status!=='closed').forEach(d=>{
+    let dt = new Date(d.nextHearing); dt.setHours(0,0,0,0);
+    let diff = Math.round((dt-today)/(1000*60*60*24));
+    if(diff>=-1) items.push({date:dt,diff,icon:'⚖️',title:d.title,sub:'Hearing · '+(d.court||'Court'),type:'legal',urgent:diff<=3});
+  });
+
+  // Maintenance scheduled dates
+  (S.maints||[]).filter(m=>m.scheduledDate&&m.status!=='done').forEach(m=>{
+    let dt = new Date(m.scheduledDate); dt.setHours(0,0,0,0);
+    let diff = Math.round((dt-today)/(1000*60*60*24));
+    if(diff>=-1) items.push({date:dt,diff,icon:'🔧',title:m.desc,sub:'Maintenance · '+pn(m.propertyId),type:'maint',urgent:diff<=3});
+  });
+
+  // Meeting follow-ups
+  (S.meetings||[]).filter(m=>m.followupDate).forEach(m=>{
+    let dt = new Date(m.followupDate); dt.setHours(0,0,0,0);
+    let diff = Math.round((dt-today)/(1000*60*60*24));
+    if(diff>=-1&&diff<=30) items.push({date:dt,diff,icon:'🤝',title:m.title+' (Follow-up)',sub:'Meeting follow-up',type:'meeting',urgent:diff<=3});
+  });
+
+  items.sort((a,b)=>a.date-b.date);
+
+  let el = document.getElementById('upcomingDates');
+  if(!el) return;
+  if(!items.length){
+    el.innerHTML='<div style="background:var(--green-pale);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--green);margin-bottom:14px">✅ No upcoming dates in next 30 days</div>';
+    return;
+  }
+
+  el.innerHTML = items.slice(0,5).map(x=>{
+    let dayLabel = x.diff===0?'Today':x.diff===1?'Tomorrow':x.diff<0?Math.abs(x.diff)+' days ago':x.diff+' days left';
+    let bgColor = x.diff<0?'var(--grey-1)':x.urgent?'var(--red-pale)':'var(--saffron-pale)';
+    let txtColor = x.diff<0?'var(--grey-4)':x.urgent?'var(--red)':'var(--saffron)';
+    return '<div style="background:white;border-radius:10px;padding:11px 13px;box-shadow:var(--shadow-sm);margin-bottom:8px;display:flex;align-items:center;gap:10px;border-left:4px solid '+(x.urgent&&x.diff>=0?'var(--red)':'var(--saffron)')+'">'+
+      '<span style="font-size:22px">'+x.icon+'</span>'+
+      '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+x.title+'</div>'+
+      '<div style="font-size:11px;color:var(--grey-4);margin-top:2px">'+x.sub+'</div></div>'+
+      '<div style="background:'+bgColor+';color:'+txtColor+';font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap">'+dayLabel+'</div></div>';
+  }).join('');
+}
+
+// ── ALERTS BANNER (Dashboard) ─────────────────────
+function renderAlerts(){
+  let el = document.getElementById('alertsBanner'); if(!el) return;
+  let alerts = [];
+  let today = new Date(); today.setHours(0,0,0,0);
+
+  // Overdue maintenance
+  (S.maints||[]).filter(m=>m.status!=='done').forEach(m=>{
+    if(!m.scheduledDate) return;
+    let dt=new Date(m.scheduledDate); dt.setHours(0,0,0,0);
+    let diff=Math.round((dt-today)/(1000*60*60*24));
+    if(diff<0) alerts.push({type:'danger',msg:'⚠️ Overdue maintenance: <strong>'+m.desc+'</strong> at '+pn(m.propertyId)});
+    else if(diff<=3) alerts.push({type:'warn',msg:'🔧 Maintenance due in '+diff+' day(s): <strong>'+m.desc+'</strong> at '+pn(m.propertyId)});
+  });
+
+  // Court hearings within 7 days
+  S.disps.filter(d=>d.nextHearing&&d.status!=='closed').forEach(d=>{
+    let dt=new Date(d.nextHearing); dt.setHours(0,0,0,0);
+    let diff=Math.round((dt-today)/(1000*60*60*24));
+    if(diff>=0&&diff<=7) alerts.push({type:'warn',msg:'⚖️ Court hearing in '+diff+' day(s): <strong>'+d.title+'</strong>'+(d.court?' at '+d.court:'')});
+  });
+
+  // Pending rent (current month)
+  let cm=CM(),cy=new Date().getFullYear();
+  let pendCount = S.tens.filter(t=>{
+    if(t.status!=='active') return false;
+    let paid=S.fins.filter(f=>f.tenantId===t.id&&f.type==='rent'&&f.month===cm&&parseInt(f.year)===cy).reduce((a,f)=>a+parseInt(f.amount||0),0);
+    return paid < parseInt(t.rentAmount||0);
+  }).length;
+  if(pendCount>0) alerts.push({type:'warn',msg:'💸 <strong>'+pendCount+' tenant(s)</strong> have pending rent for '+cm+' — <span class="alert-pending-link" style="color:var(--saffron);cursor:pointer;text-decoration:underline">tap to view</span>'});
+
+  if(!alerts.length){ el.innerHTML=''; return; }
+  el.innerHTML = alerts.map(a=>'<div class="notice '+(a.type==='danger'?'warn':'warn')+'" style="'+(a.type==='danger'?'border-color:var(--red);background:var(--red-pale)':'')+';margin-bottom:8px">'+a.msg+'</div>').join('');
+  // Attach click handlers after innerHTML set
+  el.querySelectorAll('.alert-pending-link').forEach(function(sp){
+    sp.addEventListener('click', function(){ openSh_pending(); });
+  });
+}
+
+// ── MEETINGS ──────────────────────────────────────
+if(!S.meetings) S.meetings=[];
+function openAddMeeting(){ 
+  document.getElementById('emId').value=''; 
+  document.getElementById('meetTitle').textContent='🤝 Add Meeting'; 
+  document.getElementById('mSaveBtn').textContent='✅ Save Meeting';
+  ['mTitle','mPeople','mVenue','mMom','mOutcome'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mDate').value=today();
+  document.getElementById('mFollowup').value='';
+  popSel('mProp',S.props,p=>p.name);
+  openSh('meetOv');
+}
+function editMeeting(id){
+  let m=(S.meetings||[]).find(x=>x.id===id); if(!m) return;
+  document.getElementById('emId').value=id;
+  document.getElementById('meetTitle').textContent='✏️ Edit Meeting';
+  document.getElementById('mSaveBtn').textContent='✅ Update';
+  popSel('mProp',S.props,p=>p.name);
+  document.getElementById('mTitle').value=m.title;
+  document.getElementById('mDate').value=m.date;
+  document.getElementById('mType').value=m.type||'other';
+  document.getElementById('mProp').value=m.propertyId||'';
+  document.getElementById('mPeople').value=m.people;
+  document.getElementById('mVenue').value=m.venue||'';
+  document.getElementById('mMom').value=m.mom;
+  document.getElementById('mOutcome').value=m.outcome||'';
+  document.getElementById('mFollowup').value=m.followupDate||'';
+  closeSh('meetDetailOv'); openSh('meetOv');
+}
+function saveMeeting(){
+  if(!S.meetings) S.meetings=[];
+  let eid=document.getElementById('emId').value;
+  let title=document.getElementById('mTitle').value.trim(), people=document.getElementById('mPeople').value.trim(), mom=document.getElementById('mMom').value.trim();
+  if(!title||!people||!mom){toast('⚠️ Title, People and MOM required');return;}
+  let f={title,date:document.getElementById('mDate').value,type:document.getElementById('mType').value,propertyId:document.getElementById('mProp').value,people,venue:document.getElementById('mVenue').value,mom,outcome:document.getElementById('mOutcome').value,followupDate:document.getElementById('mFollowup').value};
+  if(eid){let i=S.meetings.findIndex(x=>x.id===eid);if(i>-1)Object.assign(S.meetings[i],f,{updatedAt:new Date().toISOString()});}
+  else S.meetings.push(Object.assign({id:uid(),createdAt:new Date().toISOString()},f));
+  closeSh('meetOv'); renderMeetings(); afterSave(); toast('✅ Meeting saved!');
+}
+function deleteMeeting(id){ if(!confirm('Delete this meeting?')) return; S.meetings=S.meetings.filter(x=>x.id!==id); closeSh('meetDetailOv'); renderMeetings(); afterSave(); toast('Deleted'); }
+function setMeetF(el,f){ document.querySelectorAll('#page-meetings .tog-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active'); renderMeetings(f); }
+function renderMeetings(filter){
+  filter=filter||'all';
+  let arr=(S.meetings||[]).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(filter!=='all') arr=arr.filter(m=>m.type===filter);
+  let c=document.getElementById('meetList'); if(!c) return;
+  if(!arr.length){c.innerHTML='<div class="empty"><div class="empty-ico">🤝</div><div class="empty-title">No Meetings Yet</div><div class="empty-sub">Tap "+ Add Meeting" to record your first meeting.</div></div>';return;}
+  let typeIco={property:'🏘️',legal:'⚖️',tenant:'👤',finance:'💰',other:'📎'};
+  c.innerHTML=arr.map(m=>`
+    <div style="background:white;border-radius:14px;box-shadow:var(--shadow-sm);margin-bottom:11px;overflow:hidden">
+      <div style="background:linear-gradient(135deg,var(--navy),var(--navy-mid));padding:12px 14px;display:flex;align-items:center;gap:9px">
+        <span style="font-size:22px">${typeIco[m.type]||'📎'}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:Baloo 2,cursive;font-size:14px;font-weight:700;color:white">${m.title}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">📅 ${fd(m.date)} · 👥 ${m.people.split(',').length} people</div>
+        </div>
+        <div style="background:var(--saffron);color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">${(m.type||'').toUpperCase()}</div>
+      </div>
+      <div style="padding:10px 14px">
+        <div style="font-size:12px;color:var(--grey-4);margin-bottom:4px">👥 ${m.people}</div>
+        ${m.venue?'<div style="font-size:12px;color:var(--grey-4);margin-bottom:4px">📍 '+m.venue+'</div>':''}
+        <div style="font-size:12px;color:var(--navy);font-style:italic;border-left:3px solid var(--saffron-pale);padding-left:8px;margin:8px 0">${m.mom.slice(0,100)}${m.mom.length>100?'...':''}</div>
+        ${m.outcome?'<div style="font-size:12px;font-weight:600;color:var(--green)">✅ '+m.outcome.slice(0,80)+'</div>':''}
+        ${m.followupDate?'<div style="font-size:11px;color:var(--saffron);margin-top:4px">🔔 Follow-up: '+fd(m.followupDate)+'</div>':''}
+      </div>
+      <div style="padding:8px 12px;border-top:1px solid var(--grey-1);display:flex;gap:6px">
+        <button class="btn btn-secondary btn-sm" onclick="openMeetDetail('${m.id}')">📄 Full Details</button>
+        <button class="btn btn-blue btn-sm" onclick="editMeeting('${m.id}')">✏️ Edit</button>
+        <button class="btn btn-red btn-sm" onclick="deleteMeeting('${m.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function openMeetDetail(id){
+  let m=(S.meetings||[]).find(x=>x.id===id); if(!m) return;
+  let typeIco={property:'🏘️',legal:'⚖️',tenant:'👤',finance:'💰',other:'📎'};
+  document.getElementById('meetDetailTitle').textContent=(typeIco[m.type]||'📎')+' '+m.title;
+  document.getElementById('meetDetailBody').innerHTML=
+    '<div class="info-tbl">'+
+    '<div class="info-row"><span class="info-key">Date</span><span class="info-val">'+fd(m.date)+'</span></div>'+
+    '<div class="info-row"><span class="info-key">Type</span><span class="info-val">'+m.type+'</span></div>'+
+    (m.propertyId?'<div class="info-row"><span class="info-key">Property</span><span class="info-val">'+pn(m.propertyId)+'</span></div>':'')+
+    '<div class="info-row"><span class="info-key">People Present</span><span class="info-val">'+m.people+'</span></div>'+
+    (m.venue?'<div class="info-row"><span class="info-key">Venue</span><span class="info-val">'+m.venue+'</span></div>':'')+
+    '</div>'+
+    '<div style="font-size:12px;font-weight:700;color:var(--navy-soft);text-transform:uppercase;letter-spacing:.4px;margin:12px 0 6px">📋 Minutes of Meeting</div>'+
+    '<div style="background:var(--grey-1);border-radius:10px;padding:12px;font-size:13px;line-height:1.8;border-left:4px solid var(--saffron)">'+m.mom+'</div>'+
+    (m.outcome?'<div style="font-size:12px;font-weight:700;color:var(--navy-soft);text-transform:uppercase;letter-spacing:.4px;margin:12px 0 6px">✅ Outcome / Decision</div><div style="background:var(--green-pale);border-radius:10px;padding:12px;font-size:13px;line-height:1.8;color:var(--green)">'+m.outcome+'</div>':'')+
+    (m.followupDate?'<div class="notice warn" style="margin-top:12px">🔔 Follow-up scheduled: <strong>'+fd(m.followupDate)+'</strong></div>':'')+
+    '<div style="display:flex;gap:8px;margin-top:14px">'+
+    '<button class="btn btn-blue" style="flex:1" onclick="editMeeting('+m.id+')">✏️ Edit</button>'+
+    '<button class="btn btn-red" style="flex:1" onclick="deleteMeeting('+m.id+')">🗑 Delete</button></div>';
+  openSh('meetDetailOv');
+}
+
+// ── MAINTENANCE ───────────────────────────────────
+if(!S.maints) S.maints=[];
+function openAddMaint(){
+  if(!S.maints) S.maints=[];
+  document.getElementById('emaId').value='';
+  document.getElementById('maintTitle').textContent='🔧 Schedule Maintenance';
+  document.getElementById('maSaveBtn').textContent='✅ Save';
+  ['maDesc','maCost','maVendor','maContact','maNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('maDate').value='';
+  document.getElementById('maStatus').value='scheduled';
+  document.getElementById('maPrio').value='medium';
+  popSel('maProp',S.props,p=>p.name);
+  openSh('maintOv');
+}
+function editMaint(id){
+  let m=(S.maints||[]).find(x=>x.id===id); if(!m) return;
+  document.getElementById('emaId').value=id;
+  document.getElementById('maintTitle').textContent='✏️ Edit Maintenance';
+  document.getElementById('maSaveBtn').textContent='✅ Update';
+  popSel('maProp',S.props,p=>p.name);
+  document.getElementById('maDesc').value=m.desc;
+  document.getElementById('maProp').value=m.propertyId||'';
+  document.getElementById('maCat').value=m.category||'other';
+  document.getElementById('maPrio').value=m.priority||'medium';
+  document.getElementById('maDate').value=m.scheduledDate||'';
+  document.getElementById('maStatus').value=m.status||'scheduled';
+  document.getElementById('maCost').value=m.estimatedCost||'';
+  document.getElementById('maVendor').value=m.vendor||'';
+  document.getElementById('maContact').value=m.contact||'';
+  document.getElementById('maNotes').value=m.notes||'';
+  openSh('maintOv');
+}
+function saveMaint(){
+  if(!S.maints) S.maints=[];
+  let eid=document.getElementById('emaId').value;
+  let desc=document.getElementById('maDesc').value.trim(), propId=document.getElementById('maProp').value, date=document.getElementById('maDate').value;
+  if(!desc||!propId||!date){toast('⚠️ Description, Property and Date required');return;}
+  let f={desc,propertyId:propId,category:document.getElementById('maCat').value,priority:document.getElementById('maPrio').value,scheduledDate:date,status:document.getElementById('maStatus').value,estimatedCost:document.getElementById('maCost').value,vendor:document.getElementById('maVendor').value,contact:document.getElementById('maContact').value,notes:document.getElementById('maNotes').value};
+  if(eid){let i=S.maints.findIndex(x=>x.id===eid);if(i>-1)Object.assign(S.maints[i],f,{updatedAt:new Date().toISOString()});}
+  else S.maints.push(Object.assign({id:uid(),createdAt:new Date().toISOString()},f));
+  closeSh('maintOv'); renderMaints(); renderDash(); updMaintBadge(); afterSave(); toast('✅ Maintenance saved!');
+}
+function deleteMaint(id){ if(!confirm('Delete?')) return; S.maints=S.maints.filter(x=>x.id!==id); renderMaints(); renderDash(); updMaintBadge(); afterSave(); toast('Deleted'); }
+function markMaintDone(id){ let m=(S.maints||[]).find(x=>x.id===id); if(!m) return; m.status='done'; renderMaints(); renderDash(); updMaintBadge(); afterSave(); toast('✅ Marked as Done!'); }
+function setMaintF(el,f){ document.querySelectorAll('#page-maintenance .tog-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active'); renderMaints(f); }
+function updMaintBadge(){ let n=(S.maints||[]).filter(m=>m.status!=='done').length, b=document.getElementById('maintBadge'); if(b){b.textContent=n;b.style.display=n?'flex':'none';} }
+function renderMaints(filter){
+  filter=filter||'all';
+  let arr=(S.maints||[]).sort((a,b)=>new Date(a.scheduledDate)-new Date(b.scheduledDate));
+  if(filter!=='all') arr=arr.filter(m=>m.status===filter);
+  let c=document.getElementById('maintList'); if(!c) return;
+  if(!arr.length){c.innerHTML='<div class="empty"><div class="empty-ico">🔧</div><div class="empty-title">No Maintenance Scheduled</div><div class="empty-sub">Tap "+ Schedule" to add maintenance work.</div></div>';return;}
+  let today=new Date(); today.setHours(0,0,0,0);
+  let prioColor={high:'var(--red)',medium:'var(--saffron)',low:'var(--green)'};
+  let prioIco={high:'🔴',medium:'🟡',low:'🟢'};
+  let catIco={plumbing:'🚰',electrical:'⚡',painting:'🖌️',roofing:'🏠',flooring:'🪵',carpentry:'🪚',cleaning:'🧹',pest:'🐛',other:'🔧'};
+  let statusBg={scheduled:'var(--blue-pale)',pending:'var(--saffron-pale)',in_progress:'var(--purple-pale)',done:'var(--green-pale)'};
+  let statusColor={scheduled:'var(--blue)',pending:'var(--saffron)',in_progress:'var(--purple)',done:'var(--green)'};
+  c.innerHTML=arr.map(m=>{
+    let dt=new Date(m.scheduledDate); dt.setHours(0,0,0,0);
+    let diff=Math.round((dt-today)/(1000*60*60*24));
+    let dayLabel=m.status==='done'?'Done':diff===0?'Today':diff===1?'Tomorrow':diff<0?Math.abs(diff)+' days overdue':diff+' days left';
+    let isOverdue=diff<0&&m.status!=='done';
+    return `<div style="background:white;border-radius:14px;box-shadow:var(--shadow-sm);margin-bottom:10px;overflow:hidden;border-left:4px solid ${prioColor[m.priority]||'var(--grey-2)'}${isOverdue?';border:2px solid var(--red)':''}">
+      <div style="padding:12px 14px">
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
+          <span style="font-size:22px">${catIco[m.category]||'🔧'}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:700">${m.desc}</div>
+            <div style="font-size:11px;color:var(--grey-4);margin-top:2px">📍 ${pn(m.propertyId)}${m.vendor?' · 👷 '+m.vendor:''}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <span style="background:${statusBg[m.status]};color:${statusColor[m.status]};font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">${m.status.replace('_',' ').toUpperCase()}</span>
+            <span style="background:${isOverdue?'var(--red-pale)':m.status==='done'?'var(--green-pale)':'var(--saffron-pale)'};color:${isOverdue?'var(--red)':m.status==='done'?'var(--green)':'var(--saffron)'};font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">${dayLabel}</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:14px;font-size:11px;color:var(--grey-4)">
+          <span>📅 ${fd(m.scheduledDate)}</span>
+          <span>${prioIco[m.priority]} ${m.priority} priority</span>
+          ${m.estimatedCost?'<span>💰 '+rp(m.estimatedCost)+'</span>':''}
+        </div>
+        ${m.notes?'<div style="font-size:12px;color:var(--grey-4);margin-top:6px;font-style:italic">'+m.notes+'</div>':''}
+        ${m.contact?'<div style="margin-top:6px"><a href="tel:'+m.contact+'" style="font-size:11px;color:var(--blue)">📞 '+m.contact+'</a></div>':''}
+      </div>
+      <div style="padding:8px 12px;border-top:1px solid var(--grey-1);display:flex;gap:6px;flex-wrap:wrap">
+        ${m.status!=='done'?'<button class="btn btn-green btn-sm" onclick="markMaintDone('+m.id+')">✅ Mark Done</button>':''}
+        <button class="btn btn-blue btn-sm" onclick="editMaint('+m.id+')">✏️ Edit</button>
+        <button class="btn btn-red btn-sm" onclick="deleteMaint('+m.id+')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── PATCH showPage to include new pages ───────────
+const _origShowPage = showPage;
+showPage = function(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  let pg=document.getElementById('page-'+p);
+  if(pg) pg.classList.add('active');
+  let navEl=document.getElementById('nav-'+p);
+  if(navEl) navEl.classList.add('active');
+  let fab=document.getElementById('fab');
+  let fabActs={dashboard:openAddProp,properties:openAddProp,tenants:openAddTenant,finance:openAddRent,disputes:openAddDisp,meetings:openAddMeeting,maintenance:openAddMaint,reports:null};
+  fab.style.display=p==='reports'?'none':'flex';
+  if(fabActs[p]) fab.onclick=fabActs[p];
+  let renders={dashboard:renderDash,properties:renderProps,tenants:renderTenants,finance:renderFin,disputes:renderDisps,meetings:renderMeetings,maintenance:renderMaints};
+  if(renders[p]) renders[p]();
+};
+
+// ── PATCH openSh to handle meetings/maintenance ──
+const _origOpenSh = openSh;
+openSh = function(id){
+  if(id==='meetOv'){ popSel('mProp',S.props,p=>p.name); }
+  if(id==='maintOv'){ popSel('maProp',S.props,p=>p.name); }
+  _origOpenSh(id);
+};
+
+// ── PATCH renderDash to include alerts ────────────
+const _origRenderDash = renderDash;
+renderDash = function(){
+  _origRenderDash();
+  renderAlerts();
+  renderUpcomingDates();
+  updMaintBadge();
+};
+
+// ── PATCH renderAll ───────────────────────────────
+const _origRenderAll = renderAll;
+renderAll = function(){
+  _origRenderAll();
+  renderMeetings();
+  renderMaints();
+  updMaintBadge();
+};
+
+// Init new data arrays
+if(!S.meetings) S.meetings=[];
+if(!S.maints) S.maints=[];
+</script>
+</body>
+</html>
